@@ -12,7 +12,8 @@
     "main": {
       "type": "slideshow",
       "settings": {
-        "height": "medium",
+        "height_desktop": "medium",
+        "height_mobile": "adapt",
         "animation": "fade",
         "autoplay": true,
         "autoplay_speed": 5
@@ -43,9 +44,17 @@
         "slide_1",
         "slide_2"
       ]
+    },
+    "featured_products": {
+      "type": "featured-collection",
+      "settings": {
+        "title": "Featured Collection",
+        "subtitle": "DOHR COUTURE"
+      }
     }
   },
   "order": [
-    "main"
+    "main",
+    "featured_products"
   ]
 }
