@@ -1,0 +1,51 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "slideshow",
+      "settings": {
+        "height": "medium",
+        "animation": "fade",
+        "autoplay": true,
+        "autoplay_speed": 5
+      },
+      "blocks": {
+        "slide_1": {
+          "type": "slide",
+          "settings": {
+            "heading": "CODE TO COUTURE",
+            "subheading": "<p>Experience the craft of luxury couture fashion.</p>",
+            "button_label": "Discover Couture",
+            "content_alignment": "center",
+            "overlay_opacity": 30
+          }
+        },
+        "slide_2": {
+          "type": "slide",
+          "settings": {
+            "heading": "C2C: PRET",
+            "subheading": "<p>Explore lightweight, sophisticated summer wear.</p>",
+            "button_label": "Shop Pret",
+            "content_alignment": "center",
+            "overlay_opacity": 30
+          }
+        }
+      },
+      "block_order": [
+        "slide_1",
+        "slide_2"
+      ]
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

@@ -1,0 +1,58 @@
+{% style %}
+  {% # Loads all font variations with display: swap %}
+  {{ settings.type_primary_font | font_face: font_display: 'swap' }}
+  {{ settings.type_primary_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
+  {{ settings.type_primary_font | font_modify: 'weight', 'bold' | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
+  {{ settings.type_primary_font | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
+
+  {{ settings.type_secondary_font | font_face: font_display: 'swap' }}
+  {{ settings.type_secondary_font | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
+
+  :root {
+    /* Fonts */
+    --font-primary--family: {{ settings.type_primary_font.family }}, {{ settings.type_primary_font.fallback_families }};
+    --font-primary--style: {{ settings.type_primary_font.style }};
+    --font-primary--weight: {{ settings.type_primary_font.weight }};
+    --font-secondary--family: {{ settings.type_secondary_font.family }}, {{ settings.type_secondary_font.fallback_families }};
+    --font-secondary--style: {{ settings.type_secondary_font.style }};
+    --font-secondary--weight: {{ settings.type_secondary_font.weight }};
+
+    /* Layout */
+    --page-width: {{ settings.max_page_width }};
+    --page-margin: {{ settings.min_page_margin }}px;
+
+    /* Primary colors */
+    --color-solid-button-label: {{ settings.color_solid_button_label }};
+    --color-accent-1: {{ settings.color_accent_1 }};
+    --color-accent-1-gradient: {% if settings.color_accent_1_gradient != blank %}{{ settings.color_accent_1_gradient }}{% else %}{{ settings.color_accent_1 }}{% endif %};
+    --color-accent-2: {{ settings.color_accent_2 }};
+    --color-accent-2-gradient: {% if settings.color_accent_2_gradient != blank %}{{ settings.color_accent_2_gradient }}{% else %}{{ settings.color_accent_2 }}{% endif %};
+
+    /* Secondary colors */
+    --color-text: {{ settings.color_text }};
+    --color-outline-button: {{ settings.color_outline_button }};
+    --color-background-1: {{ settings.color_background_1 }};
+    --color-background-1-gradient: {% if settings.color_background_1_gradient != blank %}{{ settings.color_background_1_gradient }}{% else %}{{ settings.color_background_1 }}{% endif %};
+    --color-background-2: {{ settings.color_background_2 }};
+    --color-background-2-gradient: {% if settings.color_background_2_gradient != blank %}{{ settings.color_background_2_gradient }}{% else %}{{ settings.color_background_2 }}{% endif %};
+
+    /* Backward compatible aliases */
+    --color-foreground: {{ settings.color_text }};
+    --color-background: {{ settings.color_background_1 }};
+
+    /* Product colors */
+    --color-star-rating: {{ settings.color_star_rating }};
+    --color-on-sale: {{ settings.color_on_sale }};
+    --color-sold-out: {{ settings.color_sold_out }};
+    --color-custom-badge: {{ settings.color_custom_badge }};
+
+    /* Notification colors */
+    --color-success: {{ settings.color_success }};
+    --color-warning: {{ settings.color_warning }};
+    --color-error: {{ settings.color_error }};
+
+    /* Form styles */
+    --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
+    --style-border-radius-buttons: {{ settings.button_corner_radius }}px;
+  }
+{% endstyle %}

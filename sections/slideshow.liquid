@@ -1,0 +1,776 @@
+{%- if section.blocks.size > 0 -%}
+  <div 
+    id="Slideshow-{{ section.id }}" 
+    class="slideshow slideshow--{{ section.settings.height }} slideshow--{{ section.settings.animation }} full-width"
+    data-autoplay="{{ section.settings.autoplay }}"
+    data-speed="{{ section.settings.autoplay_speed | times: 1000 }}"
+    role="region"
+    aria-roledescription="carousel"
+    aria-label="Slideshow Hero Banner"
+  >
+    <div class="slideshow__inner">
+      {%- for block in section.blocks -%}
+        <div 
+          class="slideshow__slide{% if forloop.first %} is-active{% endif %}" 
+          id="Slide-{{ block.id }}"
+          data-index="{{ forloop.index0 }}"
+          role="group"
+          aria-roledescription="slide"
+          aria-label="{{ forloop.index }} of {{ section.blocks.size }}"
+          {{ block.shopify_attributes }}
+          style="
+            --overlay-opacity: {{ block.settings.overlay_opacity | divided_by: 100.0 }};
+            --slide-bg: {{ block.settings.slide_bg_color }};
+            --image-fit: {{ block.settings.image_fit }};
+          "
+        >
+          <div class="slideshow__image-container">
+            {%- if block.settings.image != blank -%}
+              <img 
+                src="{{ block.settings.image | image_url: width: 2200 }}" 
+                alt="{{ block.settings.image.alt | escape }}" 
+                class="slideshow__image" 
+                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                width="2200"
+                height="auto"
+              >
+            {%- else -%}
+              {{ 'lifestyle-1' | placeholder_svg_tag: 'slideshow__image slideshow__placeholder' }}
+            {%- endif -%}
+            
+            <div class="slideshow__overlay" style="background-color: {{ block.settings.overlay_color }};"></div>
+          </div>
+
+          <div class="slideshow__content-container">
+            <div class="slideshow__content slideshow__content--{{ block.settings.content_alignment }}">
+              {%- if block.settings.heading != blank -%}
+                <h2 class="slideshow__heading slideshow__animated" style="color: {{ block.settings.text_color }};">
+                  {{ block.settings.heading }}
+                </h2>
+              {%- endif -%}
+              {%- if block.settings.subheading != blank -%}
+                <div class="slideshow__subheading slideshow__animated" style="color: {{ block.settings.text_color }};">
+                  {{ block.settings.subheading }}
+                </div>
+              {%- endif -%}
+              {%- if block.settings.button_label != blank -%}
+                <a 
+                  href="{{ block.settings.button_link | default: '#' }}" 
+                  class="button {% if block.settings.button_style == 'solid' %}button--primary{% else %}slideshow__button--link{% endif %} slideshow__button slideshow__animated"
+                  style="
+                    --btn-bg: {{ block.settings.btn_background_color }};
+                    --btn-text: {{ block.settings.btn_text_color }};
+                    --btn-border: {{ block.settings.btn_border_color }};
+                  "
+                >
+                  {{ block.settings.button_label | escape }}
+                </a>
+              {%- endif -%}
+            </div>
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+
+    {%- if section.blocks.size > 1 -%}
+      <div class="slideshow__controls">
+        <button type="button" class="slideshow__arrow slideshow__arrow--prev" aria-label="Previous slide">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <div class="slideshow__dots">
+          {%- for block in section.blocks -%}
+            <button type="button" class="slideshow__dot{% if forloop.first %} is-active{% endif %}" data-index="{{ forloop.index0 }}" aria-label="Go to slide {{ forloop.index }}"></button>
+          {%- endfor -%}
+        </div>
+        <button type="button" class="slideshow__arrow slideshow__arrow--next" aria-label="Next slide">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </button>
+      </div>
+    {%- endif -%}
+  </div>
+
+  <script>
+    (function() {
+      function initSlideshow() {
+        const slideshow = document.getElementById('Slideshow-{{ section.id }}');
+        if (!slideshow) return;
+
+        const slides = slideshow.querySelectorAll('.slideshow__slide');
+        const dots = slideshow.querySelectorAll('.slideshow__dot');
+        const prevBtn = slideshow.querySelector('.slideshow__arrow--prev');
+        const nextBtn = slideshow.querySelector('.slideshow__arrow--next');
+        const isFade = slideshow.classList.contains('slideshow--fade');
+        const slideInner = slideshow.querySelector('.slideshow__inner');
+        
+        if (slides.length <= 1) return;
+
+        let currentIndex = 0;
+        let autoplayTimer = null;
+        const autoplay = slideshow.dataset.autoplay === 'true';
+        const speed = parseInt(slideshow.dataset.speed) || 5000;
+
+        function showSlide(index) {
+          slides[currentIndex].classList.remove('is-active');
+          if (dots[currentIndex]) dots[currentIndex].classList.remove('is-active');
+
+          currentIndex = (index + slides.length) % slides.length;
+
+          slides[currentIndex].classList.add('is-active');
+          if (dots[currentIndex]) dots[currentIndex].classList.add('is-active');
+
+          if (!isFade && slideInner) {
+            slideInner.style.transform = `translateX(-${currentIndex * 100}%)`;
+          }
+        }
+
+        function nextSlide() {
+          showSlide(currentIndex + 1);
+        }
+
+        function prevSlide() {
+          showSlide(currentIndex - 1);
+        }
+
+        function startAutoplay() {
+          if (!autoplay) return;
+          stopAutoplay();
+          autoplayTimer = setInterval(nextSlide, speed);
+        }
+
+        function stopAutoplay() {
+          if (autoplayTimer) {
+            clearInterval(autoplayTimer);
+            autoplayTimer = null;
+          }
+        }
+
+        // Event Listeners
+        if (nextBtn) {
+          nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            nextSlide();
+            startAutoplay();
+          });
+        }
+
+        if (prevBtn) {
+          prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            prevSlide();
+            startAutoplay();
+          });
+        }
+
+        dots.forEach(dot => {
+          dot.addEventListener('click', (e) => {
+            e.preventDefault();
+            const index = parseInt(e.target.dataset.index);
+            showSlide(index);
+            startAutoplay();
+          });
+        });
+
+        // Pause on hover
+        slideshow.addEventListener('mouseenter', stopAutoplay);
+        slideshow.addEventListener('mouseleave', startAutoplay);
+
+        // Set initial horizontal transform if slide mode
+        if (!isFade && slideInner) {
+          slideInner.style.transform = `translateX(-${currentIndex * 100}%)`;
+        }
+
+        startAutoplay();
+      }
+
+      // Run
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSlideshow);
+      } else {
+        initSlideshow();
+      }
+
+      document.addEventListener('shopify:section:load', function(e) {
+        if (e.target.id === 'shopify-section-{{ section.id }}') {
+          initSlideshow();
+        }
+      });
+    })();
+  </script>
+{%- endif -%}
+
+{% stylesheet %}
+  /* ===== Slideshow Container ===== */
+  .slideshow {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #000;
+  }
+
+  /* Aspect Heights */
+  .slideshow--small {
+    height: 400px;
+  }
+  .slideshow--medium {
+    height: 600px;
+  }
+  .slideshow--large {
+    height: 800px;
+  }
+  .slideshow--full-screen {
+    height: 100vh;
+    min-height: 500px;
+  }
+
+  .slideshow__inner {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    transition: transform 0.8s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+
+  /* ===== Slide Element ===== */
+  .slideshow__slide {
+    position: relative;
+    flex: 0 0 100%;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Fade animation transitions override */
+  .slideshow--fade .slideshow__inner {
+    display: block;
+    position: relative;
+    transition: none;
+  }
+
+  .slideshow--fade .slideshow__slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+    visibility: hidden;
+    z-index: 1;
+    transition: opacity 1s cubic-bezier(0.44, 0.13, 0.48, 0.87), visibility 1s;
+  }
+
+  .slideshow--fade .slideshow__slide.is-active {
+    opacity: 1;
+    visibility: visible;
+    z-index: 2;
+  }
+
+  .slideshow__image-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    overflow: hidden;
+    background-color: var(--slide-bg, #000);
+  }
+
+  .slideshow__image {
+    width: 100%;
+    height: 100%;
+    object-fit: var(--image-fit, cover);
+    object-position: center;
+    transition: transform 6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+
+  /* Luxury subtle zoom animation on the active slide */
+  .slideshow__slide.is-active .slideshow__image {
+    transform: scale(1.08);
+  }
+
+  .slideshow__placeholder {
+    fill: #444;
+    background-color: #222;
+  }
+
+  .slideshow__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: var(--overlay-opacity, 0.3);
+    z-index: 2;
+  }
+
+  /* ===== Content Container ===== */
+  .slideshow__content-container {
+    position: relative;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding: 2rem 4rem;
+  }
+
+  .slideshow__content {
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .slideshow__content--left {
+    margin-right: auto;
+    text-align: left;
+    align-items: flex-start;
+  }
+
+  .slideshow__content--center {
+    margin: 0 auto;
+    text-align: center;
+    align-items: center;
+  }
+
+  .slideshow__content--right {
+    margin-left: auto;
+    text-align: right;
+    align-items: flex-end;
+  }
+
+  /* ===== Text Elements & Micro-Animations ===== */
+  .slideshow__heading {
+    font-size: clamp(2rem, 5vw, 4rem);
+    font-weight: 300;
+    line-height: 1.1;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin: 0 0 1.5rem;
+  }
+
+  .slideshow__heading-cursive {
+    font-family: var(--font-secondary--family), Playfair Display, serif;
+    font-style: italic;
+    text-transform: none;
+    color: #d03d3d; /* Beautiful accent red */
+    display: inline-block;
+    padding: 0 0.25em;
+  }
+
+  .slideshow__subheading {
+    font-size: clamp(0.9rem, 2vw, 1.25rem);
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0.08em;
+    margin-bottom: 2.5rem;
+    opacity: 0.9;
+  }
+
+  .slideshow__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2.5rem;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 0;
+    min-width: 180px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: var(--btn-bg, #ffffff);
+    color: var(--btn-text, #000000);
+    border: 1px solid var(--btn-border, #ffffff);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+
+  .slideshow__button:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .slideshow__button--link {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0.5rem 0 !important;
+    min-width: 0 !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.2em !important;
+    text-transform: uppercase !important;
+    color: var(--btn-text, #ffffff) !important;
+    border-bottom: 1.5px solid var(--btn-text, #ffffff) !important;
+    display: inline-flex;
+    transition: opacity 0.3s ease;
+  }
+
+  .slideshow__button--link:hover {
+    opacity: 0.7;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .slideshow__content--right .slideshow__button--link {
+    align-self: flex-end;
+  }
+
+  .slideshow__content--center .slideshow__button--link {
+    align-self: center;
+  }
+
+  .slideshow__content--left .slideshow__button--link {
+    align-self: flex-start;
+  }
+
+  /* Micro-animations values */
+  .slideshow__animated {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s cubic-bezier(0.215, 0.61, 0.355, 1), transform 0.8s cubic-bezier(0.215, 0.61, 0.355, 1);
+  }
+
+  .is-active .slideshow__animated {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .is-active .slideshow__heading {
+    transition-delay: 0.4s;
+  }
+
+  .is-active .slideshow__subheading {
+    transition-delay: 0.6s;
+  }
+
+  .is-active .slideshow__button {
+    transition-delay: 0.8s;
+  }
+
+  /* ===== Controls Overlay (Dohr India Style) ===== */
+  .slideshow__controls {
+    position: absolute;
+    bottom: 2.5rem;
+    left: auto;
+    right: 4rem;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0;
+    z-index: 4;
+  }
+
+  .slideshow__arrow {
+    display: none !important; /* Hide arrows entirely to match Dohr */
+  }
+
+  .slideshow__dots {
+    display: flex;
+    gap: 0.625rem;
+  }
+
+  .slideshow__dot {
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    padding: 0;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .slideshow__dot.is-active {
+    background-color: #ffffff;
+    border-color: #ffffff;
+    width: 8px;
+  }
+
+  /* ===== Responsive Styling ===== */
+  @media (max-width: 768px) {
+    .slideshow--small {
+      height: 300px;
+    }
+    .slideshow--medium {
+      height: 400px;
+    }
+    .slideshow--large {
+      height: 500px;
+    }
+    .slideshow--full-screen {
+      height: 70vh;
+    }
+
+    .slideshow__content-container {
+      padding: 1.5rem;
+    }
+
+    .slideshow__content {
+      max-width: 100%;
+    }
+
+    .slideshow__heading {
+      font-size: 1.75rem;
+      margin-bottom: 1rem;
+    }
+
+    .slideshow__subheading {
+      font-size: 0.875rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .slideshow__button {
+      padding: 0.75rem 1.5rem;
+      font-size: 0.75rem;
+      min-width: 140px;
+    }
+
+    .slideshow__controls {
+      bottom: 1.5rem;
+      padding: 0 1.5rem;
+    }
+
+    .slideshow__arrow {
+      display: none; /* Hide arrows on mobile for clean look */
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Slideshow",
+  "class": "slideshow-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "height",
+      "label": "Slideshow height",
+      "options": [
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "full-screen",
+          "label": "Full screen"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "animation",
+      "label": "Slide transition effect",
+      "options": [
+        {
+          "value": "fade",
+          "label": "Fade"
+        },
+        {
+          "value": "slide",
+          "label": "Slide"
+        }
+      ],
+      "default": "fade"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Auto-rotate slides",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 9,
+      "step": 1,
+      "unit": "s",
+      "label": "Change slides every",
+      "default": 5
+    }
+  ],
+  "blocks": [
+    {
+      "type": "slide",
+      "name": "Slide",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "select",
+          "id": "image_fit",
+          "label": "Image fit",
+          "options": [
+            {
+              "value": "cover",
+              "label": "Cover (fill slide)"
+            },
+            {
+              "value": "contain",
+              "label": "Contain (show entire image)"
+            }
+          ],
+          "default": "cover"
+        },
+        {
+          "type": "color",
+          "id": "slide_bg_color",
+          "label": "Slide background color (if contained)",
+          "default": "#ffffff"
+        },
+        {
+          "type": "textarea",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Luxury Fashion",
+          "info": "Use <br> for line breaks. Wrap a word in <span class='slideshow__heading-cursive'>Word</span> for cursive accent styling."
+        },
+        {
+          "type": "richtext",
+          "id": "subheading",
+          "label": "Subheading",
+          "default": "<p>Discover the latest collection of code to couture wear.</p>"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Button label",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Button link"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Button style",
+          "options": [
+            {
+              "value": "solid",
+              "label": "Solid button"
+            },
+            {
+              "value": "link",
+              "label": "Underlined text (Dohr style)"
+            }
+          ],
+          "default": "solid"
+        },
+        {
+          "type": "select",
+          "id": "content_alignment",
+          "label": "Content alignment",
+          "options": [
+            {
+              "value": "left",
+              "label": "Left"
+            },
+            {
+              "value": "center",
+              "label": "Center"
+            },
+            {
+              "value": "right",
+              "label": "Right"
+            }
+          ],
+          "default": "center"
+        },
+        {
+          "type": "header",
+          "content": "Overlay Settings"
+        },
+        {
+          "type": "color",
+          "id": "overlay_color",
+          "label": "Overlay color",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "min": 0,
+          "max": 90,
+          "step": 5,
+          "unit": "%",
+          "label": "Overlay opacity",
+          "default": 30
+        },
+        {
+          "type": "header",
+          "content": "Typography & Button Colors"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "btn_background_color",
+          "label": "Button background color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "btn_text_color",
+          "label": "Button text color",
+          "default": "#000000"
+        },
+        {
+          "type": "color",
+          "id": "btn_border_color",
+          "label": "Button border color",
+          "default": "#ffffff"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Slideshow Hero Banner",
+      "blocks": [
+        {
+          "type": "slide",
+          "settings": {
+            "heading": "CODE TO COUTURE",
+            "subheading": "<p>Experience the craft of high fashion design.</p>"
+          }
+        },
+        {
+          "type": "slide",
+          "settings": {
+            "heading": "C2C: PRET",
+            "subheading": "<p>Shop minimal and elegant summer styles.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

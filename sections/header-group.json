@@ -1,0 +1,75 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "type": "header",
+  "name": "t:general.header",
+  "sections": {
+    "brand-switcher": {
+      "type": "brand-switcher",
+      "blocks": {
+        "tab-1": {
+          "type": "brand_tab",
+          "settings": {
+            "title": "Code to Couture",
+            "link": "/",
+            "is_active": true,
+            "background_color": "#666666",
+            "active_background_color": "#333333",
+            "text_color": "#cccccc",
+            "active_text_color": "#ffffff"
+          }
+        },
+        "tab-2": {
+          "type": "brand_tab",
+          "settings": {
+            "title": "C2C : PRET",
+            "link": "/pages/pret",
+            "is_active": false,
+            "background_color": "#666666",
+            "active_background_color": "#333333",
+            "text_color": "#cccccc",
+            "active_text_color": "#ffffff"
+          }
+        }
+      },
+      "block_order": [
+        "tab-1",
+        "tab-2"
+      ],
+      "settings": {}
+    },
+    "announcement-bar": {
+      "type": "announcement-bar",
+      "blocks": {
+        "announcement-1": {
+          "type": "announcement",
+          "settings": {
+            "text": "Welcome to our store — Free shipping on orders over $50"
+          }
+        }
+      },
+      "block_order": [
+        "announcement-1"
+      ],
+      "settings": {}
+    },
+    "header": {
+      "type": "header",
+      "settings": {
+        "menu": "main-menu"
+      }
+    }
+  },
+  "order": [
+    "brand-switcher",
+    "announcement-bar",
+    "header"
+  ]
+}
