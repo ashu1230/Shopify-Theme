@@ -1,7 +1,54 @@
 {%- if section.blocks.size > 0 -%}
+  {%- if section.settings.height_desktop == 'adapt' or section.settings.height_mobile == 'adapt' -%}
+    {%- assign first_block = section.blocks.first -%}
+    <style>
+      {%- if section.settings.height_desktop == 'adapt' -%}
+        #Slideshow-{{ section.id }}.slideshow--desktop-adapt {
+          height: auto;
+        }
+        #Slideshow-{{ section.id }}.slideshow--desktop-adapt .slideshow__inner {
+          {%- if first_block.type == 'image' and first_block.settings.image != blank -%}
+            aspect-ratio: {{ first_block.settings.image.aspect_ratio }};
+          {%- elsif first_block.type == 'video' -%}
+            aspect-ratio: {{ section.settings.desktop_video_width | default: '1920' }} / {{ section.settings.desktop_video_height | default: '800' }};
+          {%- else -%}
+            aspect-ratio: 16 / 9;
+          {%- endif -%}
+        }
+      {%- endif -%}
+
+      {%- if section.settings.height_mobile == 'adapt' -%}
+        @media (max-width: 768px) {
+          #Slideshow-{{ section.id }}.slideshow--mobile-adapt {
+            height: auto;
+          }
+          #Slideshow-{{ section.id }}.slideshow--mobile-adapt .slideshow__inner {
+            {%- if first_block.type == 'image' -%}
+              {%- if first_block.settings.mobile_image != blank -%}
+                aspect-ratio: {{ first_block.settings.mobile_image.aspect_ratio }};
+              {%- elsif first_block.settings.image != blank -%}
+                aspect-ratio: {{ first_block.settings.image.aspect_ratio }};
+              {%- else -%}
+                aspect-ratio: 16 / 9;
+              {%- endif -%}
+            {%- elsif first_block.type == 'video' -%}
+              {%- if first_block.settings.enable_mobile_video -%}
+                aspect-ratio: {{ section.settings.mobile_video_width | default: '2000' }} / {{ section.settings.mobile_video_height | default: '2499' }};
+              {%- else -%}
+                aspect-ratio: {{ section.settings.desktop_video_width | default: '1920' }} / {{ section.settings.desktop_video_height | default: '800' }};
+              {%- endif -%}
+            {%- else -%}
+              aspect-ratio: 16 / 9;
+            {%- endif -%}
+          }
+        }
+      {%- endif -%}
+    </style>
+  {%- endif -%}
+
   <div 
     id="Slideshow-{{ section.id }}" 
-    class="slideshow slideshow--{{ section.settings.height }} slideshow--{{ section.settings.animation }} full-width"
+    class="slideshow slideshow--desktop-{{ section.settings.height_desktop }} slideshow--mobile-{{ section.settings.height_mobile }} slideshow--{{ section.settings.animation }} {% if section.settings.remove_padding_top %}slideshow--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}slideshow--no-padding-bottom{% endif %} full-width"
     data-autoplay="{{ section.settings.autoplay }}"
     data-speed="{{ section.settings.autoplay_speed | times: 1000 }}"
     role="region"
@@ -25,46 +72,166 @@
           "
         >
           <div class="slideshow__image-container">
-            {%- if block.settings.image != blank -%}
-              <img 
-                src="{{ block.settings.image | image_url: width: 2200 }}" 
-                alt="{{ block.settings.image.alt | escape }}" 
-                class="slideshow__image" 
-                loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
-                width="2200"
-                height="auto"
-              >
+            {%- if block.type == 'video' -%}
+              {%- comment -%} Determine if we have a poster image {%- endcomment -%}
+              {%- assign poster_url = '' -%}
+              {%- if block.settings.cover_image != blank -%}
+                {%- assign poster_url = block.settings.cover_image | image_url: width: 2000 -%}
+              {%- endif -%}
+
+              {%- if block.settings.video_source == 'shopify-hosted' -%}
+                {%- if block.settings.video != blank -%}
+                  {%- if block.settings.enable_mobile_video and block.settings.mobile_video != blank -%}
+                    {{ block.settings.video | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true, poster: poster_url, class: 'slideshow__image slideshow__video hide-on-mobile' }}
+                    {{ block.settings.mobile_video | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true, poster: poster_url, class: 'slideshow__image slideshow__video show-on-mobile' }}
+                  {%- else -%}
+                    {{ block.settings.video | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true, poster: poster_url, class: 'slideshow__image slideshow__video' }}
+                  {%- endif -%}
+                {%- else -%}
+                  {%- if block.settings.cover_image != blank -%}
+                    <img src="{{ block.settings.cover_image | image_url: width: 2200 }}" alt="{{ block.settings.cover_image.alt | escape }}" class="slideshow__image" loading="lazy" width="{{ block.settings.cover_image.width }}" height="{{ block.settings.cover_image.height }}">
+                  {%- else -%}
+                    {{ 'lifestyle-1' | placeholder_svg_tag: 'slideshow__image slideshow__placeholder' }}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- else -%}
+                {%- comment -%} External video URL {%- endcomment -%}
+                {%- if block.settings.enable_mobile_video -%}
+                  {%- comment -%} Desktop external video {%- endcomment -%}
+                  <div class="slideshow__video-wrapper hide-on-mobile">
+                    {%- if block.settings.video_url != blank -%}
+                      {%- if block.settings.video_url.type == 'youtube' -%}
+                        <iframe src="https://www.youtube.com/embed/{{ block.settings.video_url.id }}?autoplay=1&mute=1&loop=1&playlist={{ block.settings.video_url.id }}&controls=0&showinfo=0&rel=0&modestbranding=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                      {%- elsif block.settings.video_url.type == 'vimeo' -%}
+                        <iframe src="https://player.vimeo.com/video/{{ block.settings.video_url.id }}?autoplay=1&loop=1&autopause=0&muted=1&background=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                      {%- endif -%}
+                    {%- elsif block.settings.cover_image != blank -%}
+                      <img src="{{ block.settings.cover_image | image_url: width: 2200 }}" alt="{{ block.settings.cover_image.alt | escape }}" class="slideshow__image" loading="lazy" width="{{ block.settings.cover_image.width }}" height="{{ block.settings.cover_image.height }}">
+                    {%- else -%}
+                      {{ 'lifestyle-1' | placeholder_svg_tag: 'slideshow__image slideshow__placeholder' }}
+                    {%- endif -%}
+                  </div>
+                  {%- comment -%} Mobile external video {%- endcomment -%}
+                  <div class="slideshow__video-wrapper show-on-mobile">
+                    {%- if block.settings.mobile_video_source == 'shopify-hosted' and block.settings.mobile_video != blank -%}
+                      {{ block.settings.mobile_video | video_tag: autoplay: true, loop: true, muted: true, controls: false, playsinline: true, poster: poster_url, class: 'slideshow__image slideshow__video' }}
+                    {%- elsif block.settings.mobile_video_source == 'external' and block.settings.mobile_video_url != blank -%}
+                      {%- if block.settings.mobile_video_url.type == 'youtube' -%}
+                        <iframe src="https://www.youtube.com/embed/{{ block.settings.mobile_video_url.id }}?autoplay=1&mute=1&loop=1&playlist={{ block.settings.mobile_video_url.id }}&controls=0&showinfo=0&rel=0&modestbranding=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                      {%- elsif block.settings.mobile_video_url.type == 'vimeo' -%}
+                        <iframe src="https://player.vimeo.com/video/{{ block.settings.mobile_video_url.id }}?autoplay=1&loop=1&autopause=0&muted=1&background=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                      {%- endif -%}
+                    {%- elsif block.settings.video_url != blank -%}
+                      {%- comment -%} Fallback to desktop external video {%- endcomment -%}
+                      {%- if block.settings.video_url.type == 'youtube' -%}
+                        <iframe src="https://www.youtube.com/embed/{{ block.settings.video_url.id }}?autoplay=1&mute=1&loop=1&playlist={{ block.settings.video_url.id }}&controls=0&showinfo=0&rel=0&modestbranding=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                      {%- elsif block.settings.video_url.type == 'vimeo' -%}
+                        <iframe src="https://player.vimeo.com/video/{{ block.settings.video_url.id }}?autoplay=1&loop=1&autopause=0&muted=1&background=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                      {%- endif -%}
+                    {%- elsif block.settings.cover_image != blank -%}
+                      <img src="{{ block.settings.cover_image | image_url: width: 2200 }}" alt="{{ block.settings.cover_image.alt | escape }}" class="slideshow__image" loading="lazy" width="{{ block.settings.cover_image.width }}" height="{{ block.settings.cover_image.height }}">
+                    {%- else -%}
+                      {{ 'lifestyle-1' | placeholder_svg_tag: 'slideshow__image slideshow__placeholder' }}
+                    {%- endif -%}
+                  </div>
+                {%- else -%}
+                  {%- comment -%} Single external video {%- endcomment -%}
+                  {%- if block.settings.video_url != blank -%}
+                    {%- if block.settings.video_url.type == 'youtube' -%}
+                      <iframe src="https://www.youtube.com/embed/{{ block.settings.video_url.id }}?autoplay=1&mute=1&loop=1&playlist={{ block.settings.video_url.id }}&controls=0&showinfo=0&rel=0&modestbranding=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                    {%- elsif block.settings.video_url.type == 'vimeo' -%}
+                      <iframe src="https://player.vimeo.com/video/{{ block.settings.video_url.id }}?autoplay=1&loop=1&autopause=0&muted=1&background=1" class="slideshow__image slideshow__video" allow="autoplay; encrypted-media" frameborder="0"></iframe>
+                    {%- endif -%}
+                  {%- elsif block.settings.cover_image != blank -%}
+                    <img src="{{ block.settings.cover_image | image_url: width: 2200 }}" alt="{{ block.settings.cover_image.alt | escape }}" class="slideshow__image" loading="lazy" width="{{ block.settings.cover_image.width }}" height="{{ block.settings.cover_image.height }}">
+                  {%- else -%}
+                    {{ 'lifestyle-1' | placeholder_svg_tag: 'slideshow__image slideshow__placeholder' }}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endif -%}
             {%- else -%}
-              {{ 'lifestyle-1' | placeholder_svg_tag: 'slideshow__image slideshow__placeholder' }}
+              {%- comment -%} Block is Image {%- endcomment -%}
+              {%- if block.settings.image != blank -%}
+                {%- if block.settings.mobile_image != blank -%}
+                  <picture class="slideshow__image-picture">
+                    <source media="(max-width: 768px)" srcset="{{ block.settings.mobile_image | image_url: width: 1000 }}">
+                    <img 
+                      src="{{ block.settings.image | image_url: width: 2200 }}" 
+                      alt="{{ block.settings.image.alt | escape }}" 
+                      class="slideshow__image" 
+                      loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                      width="2200"
+                      height="auto"
+                    >
+                  </picture>
+                {%- else -%}
+                  <img 
+                    src="{{ block.settings.image | image_url: width: 2200 }}" 
+                    alt="{{ block.settings.image.alt | escape }}" 
+                    class="slideshow__image" 
+                    loading="{% if forloop.first %}eager{% else %}lazy{% endif %}"
+                    width="2200"
+                    height="auto"
+                  >
+                {%- endif -%}
+              {%- else -%}
+                {{ 'lifestyle-1' | placeholder_svg_tag: 'slideshow__image slideshow__placeholder' }}
+              {%- endif -%}
             {%- endif -%}
             
             <div class="slideshow__overlay" style="background-color: {{ block.settings.overlay_color }};"></div>
           </div>
 
-          <div class="slideshow__content-container">
-            <div class="slideshow__content slideshow__content--{{ block.settings.content_alignment }}">
+          <div class="slideshow__content-container slideshow__content-container--{{ section.settings.content_position }}">
+            <div class="slideshow__content">
+              {%- if block.settings.subheading != blank -%}
+                <div class="slideshow__subheading slideshow__animated" style="color: {{ block.settings.text_color }};">
+                  {{ block.settings.subheading | escape }}
+                </div>
+              {%- endif -%}
+
               {%- if block.settings.heading != blank -%}
                 <h2 class="slideshow__heading slideshow__animated" style="color: {{ block.settings.text_color }};">
                   {{ block.settings.heading }}
                 </h2>
               {%- endif -%}
-              {%- if block.settings.subheading != blank -%}
-                <div class="slideshow__subheading slideshow__animated" style="color: {{ block.settings.text_color }};">
-                  {{ block.settings.subheading }}
+
+              {%- if block.settings.description != blank -%}
+                <div class="slideshow__description slideshow__animated" style="color: {{ block.settings.text_color }};">
+                  {{ block.settings.description }}
                 </div>
               {%- endif -%}
-              {%- if block.settings.button_label != blank -%}
-                <a 
-                  href="{{ block.settings.button_link | default: '#' }}" 
-                  class="button {% if block.settings.button_style == 'solid' %}button--primary{% else %}slideshow__button--link{% endif %} slideshow__button slideshow__animated"
-                  style="
-                    --btn-bg: {{ block.settings.btn_background_color }};
-                    --btn-text: {{ block.settings.btn_text_color }};
-                    --btn-border: {{ block.settings.btn_border_color }};
-                  "
-                >
-                  {{ block.settings.button_label | escape }}
-                </a>
+
+              {%- if block.settings.button_label != blank or block.settings.secondary_button_label != blank -%}
+                <div class="slideshow__buttons slideshow__animated">
+                  {%- if block.settings.button_label != blank -%}
+                    <a 
+                      href="{{ block.settings.button_link | default: '#' }}" 
+                      class="button {% if block.settings.button_style == 'solid' %}button--primary{% else %}slideshow__button--link{% endif %} slideshow__button"
+                      style="
+                        --btn-bg: {{ block.settings.btn_background_color }};
+                        --btn-text: {{ block.settings.btn_text_color }};
+                        --btn-border: {{ block.settings.btn_border_color }};
+                      "
+                    >
+                      {{ block.settings.button_label | escape }}
+                    </a>
+                  {%- endif -%}
+
+                  {%- if block.settings.secondary_button_label != blank -%}
+                    <a 
+                      href="{{ block.settings.secondary_button_link | default: '#' }}" 
+                      class="button {% if block.settings.button_style == 'solid' %}button--secondary{% else %}slideshow__button--link{% endif %} slideshow__button"
+                      style="
+                        --btn-bg: transparent;
+                        --btn-text: {{ block.settings.text_color }};
+                        --btn-border: {{ block.settings.text_color }};
+                      "
+                    >
+                      {{ block.settings.secondary_button_label | escape }}
+                    </a>
+                  {%- endif -%}
+                </div>
               {%- endif -%}
             </div>
           </div>
@@ -73,25 +240,39 @@
     </div>
 
     {%- if section.blocks.size > 1 -%}
-      <div class="slideshow__controls">
+      {%- if section.settings.show_navigation -%}
         <button type="button" class="slideshow__arrow slideshow__arrow--prev" aria-label="Previous slide">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"></line>
             <polyline points="12 19 5 12 12 5"></polyline>
           </svg>
         </button>
-        <div class="slideshow__dots">
-          {%- for block in section.blocks -%}
-            <button type="button" class="slideshow__dot{% if forloop.first %} is-active{% endif %}" data-index="{{ forloop.index0 }}" aria-label="Go to slide {{ forloop.index }}"></button>
-          {%- endfor -%}
-        </div>
+      {%- endif -%}
+
+      <div class="slideshow__controls">
+        {%- if section.settings.show_pagination_number -%}
+          <div class="slideshow__pagination-number">
+            <span class="slideshow__pagination-current">01</span>
+            <span class="slideshow__pagination-separator">/</span>
+            <span class="slideshow__pagination-total">{{ section.blocks.size | prepend: '0' | slice: -2, 2 }}</span>
+          </div>
+        {%- else -%}
+          <div class="slideshow__dots">
+            {%- for block in section.blocks -%}
+              <button type="button" class="slideshow__dot{% if forloop.first %} is-active{% endif %}" data-index="{{ forloop.index0 }}" aria-label="Go to slide {{ forloop.index }}"></button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.show_navigation -%}
         <button type="button" class="slideshow__arrow slideshow__arrow--next" aria-label="Next slide">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <line x1="5" y1="12" x2="19" y2="12"></line>
             <polyline points="12 5 19 12 12 19"></polyline>
           </svg>
         </button>
-      </div>
+      {%- endif -%}
     {%- endif -%}
   </div>
 
@@ -124,6 +305,12 @@
           slides[currentIndex].classList.add('is-active');
           if (dots[currentIndex]) dots[currentIndex].classList.add('is-active');
 
+          // Update pagination numbers if active
+          const currentSpan = slideshow.querySelector('.slideshow__pagination-current');
+          if (currentSpan) {
+            currentSpan.textContent = String(currentIndex + 1).padStart(2, '0');
+          }
+
           if (!isFade && slideInner) {
             slideInner.style.transform = `translateX(-${currentIndex * 100}%)`;
           }
@@ -150,7 +337,6 @@
           }
         }
 
-        // Event Listeners
         if (nextBtn) {
           nextBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -176,11 +362,9 @@
           });
         });
 
-        // Pause on hover
         slideshow.addEventListener('mouseenter', stopAutoplay);
         slideshow.addEventListener('mouseleave', startAutoplay);
 
-        // Set initial horizontal transform if slide mode
         if (!isFade && slideInner) {
           slideInner.style.transform = `translateX(-${currentIndex * 100}%)`;
         }
@@ -188,7 +372,6 @@
         startAutoplay();
       }
 
-      // Run
       if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', initSlideshow);
       } else {
@@ -215,19 +398,53 @@
     background-color: #000;
   }
 
-  /* Aspect Heights */
-  .slideshow--small {
-    height: 400px;
+  /* Padding Control */
+  .slideshow--no-padding-top {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
   }
-  .slideshow--medium {
-    height: 600px;
+  .slideshow--no-padding-bottom {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
   }
-  .slideshow--large {
-    height: 800px;
+
+  /* Aspect Heights - Desktop */
+  @media (min-width: 769px) {
+    .slideshow--desktop-adapt {
+      height: auto;
+    }
+    .slideshow--desktop-small {
+      height: 400px;
+    }
+    .slideshow--desktop-medium {
+      height: 600px;
+    }
+    .slideshow--desktop-large {
+      height: 800px;
+    }
+    .slideshow--desktop-full-screen {
+      height: 100vh;
+      min-height: 500px;
+    }
   }
-  .slideshow--full-screen {
-    height: 100vh;
-    min-height: 500px;
+
+  /* Aspect Heights - Mobile */
+  @media (max-width: 768px) {
+    .slideshow--mobile-adapt {
+      height: auto;
+    }
+    .slideshow--mobile-small {
+      height: 300px;
+    }
+    .slideshow--mobile-medium {
+      height: 400px;
+    }
+    .slideshow--mobile-large {
+      height: 500px;
+    }
+    .slideshow--mobile-full-screen {
+      height: 70vh;
+    }
   }
 
   .slideshow__inner {
@@ -271,6 +488,7 @@
     z-index: 2;
   }
 
+  /* ===== Background Media (Image / Video) ===== */
   .slideshow__image-container {
     position: absolute;
     top: 0;
@@ -282,6 +500,12 @@
     background-color: var(--slide-bg, #000);
   }
 
+  .slideshow__image-picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
   .slideshow__image {
     width: 100%;
     height: 100%;
@@ -290,7 +514,16 @@
     transition: transform 6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
-  /* Luxury subtle zoom animation on the active slide */
+  .slideshow__video {
+    object-fit: var(--image-fit, cover);
+  }
+
+  .slideshow__video-wrapper {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Zoom animation on active slide */
   .slideshow__slide.is-active .slideshow__image {
     transform: scale(1.08);
   }
@@ -310,16 +543,31 @@
     z-index: 2;
   }
 
-  /* ===== Content Container ===== */
+  /* ===== Content Container & Positioning ===== */
   .slideshow__content-container {
-    position: relative;
-    z-index: 3;
+    position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
     display: flex;
-    align-items: center;
-    padding: 2rem 4rem;
+    box-sizing: border-box;
+    z-index: 3;
+    padding: 4rem 6rem;
   }
+
+  /* Positions */
+  .slideshow__content-container--left-top { align-items: flex-start; justify-content: flex-start; }
+  .slideshow__content-container--left-center { align-items: center; justify-content: flex-start; }
+  .slideshow__content-container--left-bottom { align-items: flex-end; justify-content: flex-start; }
+
+  .slideshow__content-container--center-top { align-items: flex-start; justify-content: center; }
+  .slideshow__content-container--center-center { align-items: center; justify-content: center; }
+  .slideshow__content-container--center-bottom { align-items: flex-end; justify-content: center; }
+
+  .slideshow__content-container--right-top { align-items: flex-start; justify-content: flex-end; }
+  .slideshow__content-container--right-center { align-items: center; justify-content: flex-end; }
+  .slideshow__content-container--right-bottom { align-items: flex-end; justify-content: flex-end; }
 
   .slideshow__content {
     max-width: 680px;
@@ -328,30 +576,43 @@
     width: 100%;
   }
 
-  .slideshow__content--left {
-    margin-right: auto;
+  /* Inner elements text align relative to container alignment */
+  .slideshow__content-container--left-top .slideshow__content,
+  .slideshow__content-container--left-center .slideshow__content,
+  .slideshow__content-container--left-bottom .slideshow__content {
     text-align: left;
     align-items: flex-start;
   }
 
-  .slideshow__content--center {
-    margin: 0 auto;
+  .slideshow__content-container--center-top .slideshow__content,
+  .slideshow__content-container--center-center .slideshow__content,
+  .slideshow__content-container--center-bottom .slideshow__content {
     text-align: center;
     align-items: center;
   }
 
-  .slideshow__content--right {
-    margin-left: auto;
+  .slideshow__content-container--right-top .slideshow__content,
+  .slideshow__content-container--right-center .slideshow__content,
+  .slideshow__content-container--right-bottom .slideshow__content {
     text-align: right;
     align-items: flex-end;
   }
 
-  /* ===== Text Elements & Micro-Animations ===== */
+  /* ===== Typography & Animation ===== */
+  .slideshow__subheading {
+    font-size: clamp(0.875rem, 1.5vw, 1.125rem);
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    opacity: 0.95;
+  }
+
   .slideshow__heading {
-    font-size: clamp(2rem, 5vw, 4rem);
+    font-size: clamp(2.25rem, 5.5vw, 4.5rem);
     font-weight: 300;
-    line-height: 1.1;
-    letter-spacing: 0.05em;
+    line-height: 1.05;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     margin: 0 0 1.5rem;
   }
@@ -360,41 +621,69 @@
     font-family: var(--font-secondary--family), Playfair Display, serif;
     font-style: italic;
     text-transform: none;
-    color: #d03d3d; /* Beautiful accent red */
+    color: #d03d3d;
     display: inline-block;
-    padding: 0 0.25em;
+    padding: 0 0.2em;
   }
 
-  .slideshow__subheading {
-    font-size: clamp(0.9rem, 2vw, 1.25rem);
+  .slideshow__description {
+    font-size: clamp(0.95rem, 1.8vw, 1.25rem);
     font-weight: 400;
-    line-height: 1.5;
-    letter-spacing: 0.08em;
-    margin-bottom: 2.5rem;
-    opacity: 0.9;
+    line-height: 1.6;
+    margin-bottom: 2rem;
+    opacity: 0.85;
+    max-width: 580px;
+  }
+
+  .slideshow__description p {
+    margin: 0;
+  }
+
+  /* ===== Button Styles ===== */
+  .slideshow__buttons {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+    margin-top: 0.5rem;
   }
 
   .slideshow__button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 1rem 2.5rem;
+    padding: 1.1rem 2.8rem;
     font-size: 0.8125rem;
     font-weight: 600;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     text-decoration: none;
     border-radius: 0;
-    min-width: 180px;
+    min-width: 190px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    background-color: var(--btn-bg, #ffffff);
-    color: var(--btn-text, #000000);
-    border: 1px solid var(--btn-border, #ffffff);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
-  .slideshow__button:hover {
-    opacity: 0.9;
+  .button--primary {
+    background-color: var(--btn-bg, #ffffff);
+    color: var(--btn-text, #000000);
+    border: 1px solid var(--btn-border, #ffffff);
+  }
+
+  .button--primary:hover {
+    opacity: 0.95;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  }
+
+  .button--secondary {
+    background-color: transparent;
+    color: var(--btn-text, #ffffff);
+    border: 1px solid var(--btn-border, #ffffff);
+  }
+
+  .button--secondary:hover {
+    background-color: var(--btn-border, #ffffff);
+    color: #000000 !important;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   }
@@ -421,19 +710,7 @@
     box-shadow: none !important;
   }
 
-  .slideshow__content--right .slideshow__button--link {
-    align-self: flex-end;
-  }
-
-  .slideshow__content--center .slideshow__button--link {
-    align-self: center;
-  }
-
-  .slideshow__content--left .slideshow__button--link {
-    align-self: flex-start;
-  }
-
-  /* Micro-animations values */
+  /* Micro-animations */
   .slideshow__animated {
     opacity: 0;
     transform: translateY(30px);
@@ -445,23 +722,15 @@
     transform: translateY(0);
   }
 
-  .is-active .slideshow__heading {
-    transition-delay: 0.4s;
-  }
-
-  .is-active .slideshow__subheading {
-    transition-delay: 0.6s;
-  }
-
-  .is-active .slideshow__button {
-    transition-delay: 0.8s;
-  }
+  .is-active .slideshow__subheading { transition-delay: 0.3s; }
+  .is-active .slideshow__heading { transition-delay: 0.5s; }
+  .is-active .slideshow__description { transition-delay: 0.7s; }
+  .is-active .slideshow__buttons { transition-delay: 0.9s; }
 
   /* ===== Controls Overlay (Dohr India Style) ===== */
   .slideshow__controls {
     position: absolute;
     bottom: 2.5rem;
-    left: auto;
     right: 4rem;
     display: flex;
     align-items: center;
@@ -471,12 +740,40 @@
   }
 
   .slideshow__arrow {
-    display: none !important; /* Hide arrows entirely to match Dohr */
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    border-radius: 50%;
+    color: #ffffff;
+    cursor: pointer;
+    z-index: 4;
+    width: 46px;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.6;
+    transition: all 0.3s ease;
+  }
+
+  .slideshow__arrow:hover {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .slideshow__arrow--prev {
+    left: 2rem;
+  }
+
+  .slideshow__arrow--next {
+    right: 2rem;
   }
 
   .slideshow__dots {
     display: flex;
-    gap: 0.625rem;
+    gap: 0.75rem;
   }
 
   .slideshow__dot {
@@ -493,26 +790,50 @@
   .slideshow__dot.is-active {
     background-color: #ffffff;
     border-color: #ffffff;
-    width: 8px;
+  }
+
+  /* Numeric Pagination Style */
+  .slideshow__pagination-number {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+  }
+
+  .slideshow__pagination-current {
+    font-weight: 700;
+  }
+
+  .slideshow__pagination-separator {
+    opacity: 0.5;
+  }
+
+  .slideshow__pagination-total {
+    opacity: 0.5;
+  }
+
+  /* Display Helpers */
+  .hide-on-mobile {
+    display: block !important;
+  }
+  .show-on-mobile {
+    display: none !important;
   }
 
   /* ===== Responsive Styling ===== */
   @media (max-width: 768px) {
-    .slideshow--small {
-      height: 300px;
+    .hide-on-mobile {
+      display: none !important;
     }
-    .slideshow--medium {
-      height: 400px;
-    }
-    .slideshow--large {
-      height: 500px;
-    }
-    .slideshow--full-screen {
-      height: 70vh;
+    .show-on-mobile {
+      display: block !important;
     }
 
     .slideshow__content-container {
-      padding: 1.5rem;
+      padding: 2.5rem 1.5rem;
     }
 
     .slideshow__content {
@@ -520,28 +841,42 @@
     }
 
     .slideshow__heading {
-      font-size: 1.75rem;
+      font-size: 1.85rem;
       margin-bottom: 1rem;
     }
 
     .slideshow__subheading {
+      font-size: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .slideshow__description {
       font-size: 0.875rem;
       margin-bottom: 1.5rem;
     }
 
     .slideshow__button {
-      padding: 0.75rem 1.5rem;
+      padding: 0.85rem 1.8rem;
       font-size: 0.75rem;
       min-width: 140px;
     }
 
     .slideshow__controls {
       bottom: 1.5rem;
-      padding: 0 1.5rem;
+      right: 1.5rem;
     }
 
     .slideshow__arrow {
-      display: none; /* Hide arrows on mobile for clean look */
+      width: 38px;
+      height: 38px;
+    }
+
+    .slideshow__arrow--prev {
+      left: 1rem;
+    }
+
+    .slideshow__arrow--next {
+      right: 1rem;
     }
   }
 {% endstylesheet %}
@@ -553,9 +888,13 @@
   "settings": [
     {
       "type": "select",
-      "id": "height",
-      "label": "Slideshow height",
+      "id": "height_desktop",
+      "label": "Section height on large screen",
       "options": [
+        {
+          "value": "adapt",
+          "label": "Adapt to media"
+        },
         {
           "value": "small",
           "label": "Small"
@@ -577,6 +916,154 @@
     },
     {
       "type": "select",
+      "id": "height_mobile",
+      "label": "Section height on small screen",
+      "options": [
+        {
+          "value": "adapt",
+          "label": "Adapt to media"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "full-screen",
+          "label": "Full screen"
+        }
+      ],
+      "default": "adapt"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_top",
+      "label": "Remove padding top",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_bottom",
+      "label": "Remove padding bottom",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "Video Slide Dimensions"
+    },
+    {
+      "type": "text",
+      "id": "desktop_video_width",
+      "label": "Desktop video width (px)",
+      "default": "1920"
+    },
+    {
+      "type": "text",
+      "id": "desktop_video_height",
+      "label": "Desktop video height (px)",
+      "default": "800"
+    },
+    {
+      "type": "text",
+      "id": "mobile_video_width",
+      "label": "Mobile video width (px)",
+      "default": "2000"
+    },
+    {
+      "type": "text",
+      "id": "mobile_video_height",
+      "label": "Mobile video height (px)",
+      "default": "2499"
+    },
+    {
+      "type": "header",
+      "content": "Controller"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_pagination_number",
+      "label": "Show paginations as number",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_navigation",
+      "label": "Show navigation",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "Enable autoplay",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "autoplay_speed",
+      "min": 3,
+      "max": 9,
+      "step": 1,
+      "unit": "s",
+      "label": "Change slides every",
+      "default": 5
+    },
+    {
+      "type": "header",
+      "content": "Content"
+    },
+    {
+      "type": "select",
+      "id": "content_position",
+      "label": "Content position",
+      "options": [
+        {
+          "value": "left-top",
+          "label": "Left top"
+        },
+        {
+          "value": "left-center",
+          "label": "Left center"
+        },
+        {
+          "value": "left-bottom",
+          "label": "Left bottom"
+        },
+        {
+          "value": "center-top",
+          "label": "Center top"
+        },
+        {
+          "value": "center-center",
+          "label": "Center center"
+        },
+        {
+          "value": "center-bottom",
+          "label": "Center bottom"
+        },
+        {
+          "value": "right-top",
+          "label": "Right top"
+        },
+        {
+          "value": "right-center",
+          "label": "Right center"
+        },
+        {
+          "value": "right-bottom",
+          "label": "Right bottom"
+        }
+      ],
+      "default": "left-bottom"
+    },
+    {
+      "type": "select",
       "id": "animation",
       "label": "Slide transition effect",
       "options": [
@@ -590,33 +1077,22 @@
         }
       ],
       "default": "fade"
-    },
-    {
-      "type": "checkbox",
-      "id": "autoplay",
-      "label": "Auto-rotate slides",
-      "default": true
-    },
-    {
-      "type": "range",
-      "id": "autoplay_speed",
-      "min": 3,
-      "max": 9,
-      "step": 1,
-      "unit": "s",
-      "label": "Change slides every",
-      "default": 5
     }
   ],
   "blocks": [
     {
-      "type": "slide",
-      "name": "Slide",
+      "type": "image",
+      "name": "Image",
       "settings": [
         {
           "type": "image_picker",
           "id": "image",
           "label": "Image"
+        },
+        {
+          "type": "image_picker",
+          "id": "mobile_image",
+          "label": "Mobile Image (optional)"
         },
         {
           "type": "select",
@@ -641,6 +1117,12 @@
           "default": "#ffffff"
         },
         {
+          "type": "text",
+          "id": "subheading",
+          "label": "Subheading",
+          "default": "Subheading"
+        },
+        {
           "type": "textarea",
           "id": "heading",
           "label": "Heading",
@@ -649,25 +1131,25 @@
         },
         {
           "type": "richtext",
-          "id": "subheading",
-          "label": "Subheading",
+          "id": "description",
+          "label": "Description",
           "default": "<p>Discover the latest collection of code to couture wear.</p>"
         },
         {
           "type": "text",
           "id": "button_label",
-          "label": "Button label",
+          "label": "Primary button label",
           "default": "Shop Now"
         },
         {
           "type": "url",
           "id": "button_link",
-          "label": "Button link"
+          "label": "Primary button link"
         },
         {
           "type": "select",
           "id": "button_style",
-          "label": "Button style",
+          "label": "Primary button style",
           "options": [
             {
               "value": "solid",
@@ -681,24 +1163,217 @@
           "default": "solid"
         },
         {
+          "type": "text",
+          "id": "secondary_button_label",
+          "label": "Secondary button label"
+        },
+        {
+          "type": "url",
+          "id": "secondary_button_link",
+          "label": "Secondary button link"
+        },
+        {
+          "type": "header",
+          "content": "Overlay Settings"
+        },
+        {
+          "type": "color",
+          "id": "overlay_color",
+          "label": "Overlay color",
+          "default": "#000000"
+        },
+        {
+          "type": "range",
+          "id": "overlay_opacity",
+          "min": 0,
+          "max": 90,
+          "step": 5,
+          "unit": "%",
+          "label": "Overlay opacity",
+          "default": 30
+        },
+        {
+          "type": "header",
+          "content": "Typography & Button Colors"
+        },
+        {
+          "type": "color",
+          "id": "text_color",
+          "label": "Text color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "btn_background_color",
+          "label": "Button background color",
+          "default": "#ffffff"
+        },
+        {
+          "type": "color",
+          "id": "btn_text_color",
+          "label": "Button text color",
+          "default": "#000000"
+        },
+        {
+          "type": "color",
+          "id": "btn_border_color",
+          "label": "Button border color",
+          "default": "#ffffff"
+        }
+      ]
+    },
+    {
+      "type": "video",
+      "name": "Video",
+      "settings": [
+        {
+          "type": "text",
+          "id": "subheading",
+          "label": "Subheading",
+          "default": "Subheading"
+        },
+        {
+          "type": "textarea",
+          "id": "heading",
+          "label": "Heading",
+          "default": "Luxury Motion",
+          "info": "Use <br> for line breaks. Wrap a word in <span class='slideshow__heading-cursive'>Word</span> for cursive accent styling."
+        },
+        {
+          "type": "richtext",
+          "id": "description",
+          "label": "Description",
+          "default": "<p>Experience your brand in motion.</p>"
+        },
+        {
           "type": "select",
-          "id": "content_alignment",
-          "label": "Content alignment",
+          "id": "video_source",
+          "label": "Video source",
           "options": [
             {
-              "value": "left",
-              "label": "Left"
+              "value": "shopify-hosted",
+              "label": "Shopify-hosted"
             },
             {
-              "value": "center",
-              "label": "Center"
-            },
-            {
-              "value": "right",
-              "label": "Right"
+              "value": "external",
+              "label": "External (YouTube/Vimeo)"
             }
           ],
-          "default": "center"
+          "default": "shopify-hosted"
+        },
+        {
+          "type": "video",
+          "id": "video",
+          "label": "Shopify-hosted Video"
+        },
+        {
+          "type": "video_url",
+          "id": "video_url",
+          "accept": [
+            "youtube",
+            "vimeo"
+          ],
+          "label": "External Video URL"
+        },
+        {
+          "type": "checkbox",
+          "id": "enable_mobile_video",
+          "label": "Enable separate mobile video",
+          "default": false
+        },
+        {
+          "type": "select",
+          "id": "mobile_video_source",
+          "label": "Mobile video source",
+          "options": [
+            {
+              "value": "shopify-hosted",
+              "label": "Shopify-hosted"
+            },
+            {
+              "value": "external",
+              "label": "External (YouTube/Vimeo)"
+            }
+          ],
+          "default": "shopify-hosted"
+        },
+        {
+          "type": "video",
+          "id": "mobile_video",
+          "label": "Mobile Video (Shopify-hosted)"
+        },
+        {
+          "type": "video_url",
+          "id": "mobile_video_url",
+          "accept": [
+            "youtube",
+            "vimeo"
+          ],
+          "label": "Mobile External Video URL"
+        },
+        {
+          "type": "image_picker",
+          "id": "cover_image",
+          "label": "Cover Image (optional fallback)"
+        },
+        {
+          "type": "select",
+          "id": "image_fit",
+          "label": "Video fit",
+          "options": [
+            {
+              "value": "cover",
+              "label": "Cover (fill slide)"
+            },
+            {
+              "value": "contain",
+              "label": "Contain (show entire video)"
+            }
+          ],
+          "default": "cover"
+        },
+        {
+          "type": "color",
+          "id": "slide_bg_color",
+          "label": "Slide background color (if contained)",
+          "default": "#000000"
+        },
+        {
+          "type": "text",
+          "id": "button_label",
+          "label": "Primary button label",
+          "default": "Shop Now"
+        },
+        {
+          "type": "url",
+          "id": "button_link",
+          "label": "Primary button link"
+        },
+        {
+          "type": "select",
+          "id": "button_style",
+          "label": "Primary button style",
+          "options": [
+            {
+              "value": "solid",
+              "label": "Solid button"
+            },
+            {
+              "value": "link",
+              "label": "Underlined text (Dohr style)"
+            }
+          ],
+          "default": "solid"
+        },
+        {
+          "type": "text",
+          "id": "secondary_button_label",
+          "label": "Secondary button label"
+        },
+        {
+          "type": "url",
+          "id": "secondary_button_link",
+          "label": "Secondary button link"
         },
         {
           "type": "header",
@@ -756,17 +1431,17 @@
       "name": "Slideshow Hero Banner",
       "blocks": [
         {
-          "type": "slide",
+          "type": "image",
           "settings": {
             "heading": "CODE TO COUTURE",
-            "subheading": "<p>Experience the craft of high fashion design.</p>"
+            "description": "<p>Experience the craft of high fashion design.</p>"
           }
         },
         {
-          "type": "slide",
+          "type": "image",
           "settings": {
             "heading": "C2C: PRET",
-            "subheading": "<p>Shop minimal and elegant summer styles.</p>"
+            "description": "<p>Shop minimal and elegant summer styles.</p>"
           }
         }
       ]

@@ -19,7 +19,7 @@
       },
       "blocks": {
         "slide_1": {
-          "type": "slide",
+          "type": "image",
           "settings": {
             "heading": "CODE TO COUTURE",
             "subheading": "<p>Experience the craft of luxury couture fashion.</p>",
@@ -29,7 +29,7 @@
           }
         },
         "slide_2": {
-          "type": "slide",
+          "type": "image",
           "settings": {
             "heading": "C2C: PRET",
             "subheading": "<p>Explore lightweight, sophisticated summer wear.</p>",
