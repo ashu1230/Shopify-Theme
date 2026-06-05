@@ -1,5 +1,5 @@
 {%- if section.blocks.size > 0 -%}
-  {%- if section.settings.height_desktop == 'adapt' or section.settings.height_mobile == 'adapt' -%}
+  {%- if section.settings.height_desktop == 'adapt' or section.settings.height_desktop == 'adapt-each' or section.settings.height_mobile == 'adapt' or section.settings.height_mobile == 'adapt-each' -%}
     {%- assign first_block = section.blocks.first -%}
     <style>
       {%- if section.settings.height_desktop == 'adapt' -%}
@@ -14,6 +14,13 @@
           {%- else -%}
             aspect-ratio: 16 / 9;
           {%- endif -%}
+        }
+      {%- elsif section.settings.height_desktop == 'adapt-each' -%}
+        #Slideshow-{{ section.id }}.slideshow--desktop-adapt-each {
+          height: auto;
+        }
+        #Slideshow-{{ section.id }}.slideshow--desktop-adapt-each .slideshow__inner {
+          transition: aspect-ratio 0.5s ease-in-out;
         }
       {%- endif -%}
 
@@ -42,6 +49,15 @@
             {%- endif -%}
           }
         }
+      {%- elsif section.settings.height_mobile == 'adapt-each' -%}
+        @media (max-width: 768px) {
+          #Slideshow-{{ section.id }}.slideshow--mobile-adapt-each {
+            height: auto;
+          }
+          #Slideshow-{{ section.id }}.slideshow--mobile-adapt-each .slideshow__inner {
+            transition: aspect-ratio 0.5s ease-in-out;
+          }
+        }
       {%- endif -%}
     </style>
   {%- endif -%}
@@ -57,10 +73,33 @@
   >
     <div class="slideshow__inner">
       {%- for block in section.blocks -%}
+        {%- assign desktop_aspect = '16/9' -%}
+        {%- assign mobile_aspect = '16/9' -%}
+        
+        {%- if block.type == 'image' -%}
+          {%- if block.settings.image != blank -%}
+            {%- assign desktop_aspect = block.settings.image.aspect_ratio -%}
+            {%- if block.settings.mobile_image != blank -%}
+              {%- assign mobile_aspect = block.settings.mobile_image.aspect_ratio -%}
+            {%- else -%}
+              {%- assign mobile_aspect = block.settings.image.aspect_ratio -%}
+            {%- endif -%}
+          {%- endif -%}
+        {%- elsif block.type == 'video' -%}
+          {%- assign desktop_aspect = section.settings.desktop_video_width | default: '1920' | append: '/' | append: section.settings.desktop_video_height | default: '800' -%}
+          {%- if block.settings.enable_mobile_video -%}
+            {%- assign mobile_aspect = section.settings.mobile_video_width | default: '2000' | append: '/' | append: section.settings.mobile_video_height | default: '2499' -%}
+          {%- else -%}
+            {%- assign mobile_aspect = section.settings.desktop_video_width | default: '1920' | append: '/' | append: section.settings.desktop_video_height | default: '800' -%}
+          {%- endif -%}
+        {%- endif -%}
+
         <div 
           class="slideshow__slide{% if forloop.first %} is-active{% endif %}" 
           id="Slide-{{ block.id }}"
           data-index="{{ forloop.index0 }}"
+          data-aspect-ratio-desktop="{{ desktop_aspect }}"
+          data-aspect-ratio-mobile="{{ mobile_aspect }}"
           role="group"
           aria-roledescription="slide"
           aria-label="{{ forloop.index }} of {{ section.blocks.size }}"
@@ -291,10 +330,25 @@
         
         if (slides.length <= 1) return;
 
-        let currentIndex = 0;
-        let autoplayTimer = null;
-        const autoplay = slideshow.dataset.autoplay === 'true';
-        const speed = parseInt(slideshow.dataset.speed) || 5000;
+        function updateAspectRatio() {
+          const isMobile = window.innerWidth <= 768;
+          const activeSlide = slides[currentIndex];
+          if (!activeSlide) return;
+
+          const isAdaptEach = (slideshow.classList.contains('slideshow--desktop-adapt-each') && !isMobile) ||
+                              (slideshow.classList.contains('slideshow--mobile-adapt-each') && isMobile);
+          
+          if (slideInner) {
+            if (isAdaptEach) {
+              const aspect = isMobile ? activeSlide.dataset.aspectRatioMobile : activeSlide.dataset.aspectRatioDesktop;
+              if (aspect) {
+                slideInner.style.aspectRatio = aspect;
+              }
+            } else {
+              slideInner.style.removeProperty('aspect-ratio');
+            }
+          }
+        }
 
         function showSlide(index) {
           slides[currentIndex].classList.remove('is-active');
@@ -310,6 +364,8 @@
           if (currentSpan) {
             currentSpan.textContent = String(currentIndex + 1).padStart(2, '0');
           }
+
+          updateAspectRatio();
 
           if (!isFade && slideInner) {
             slideInner.style.transform = `translateX(-${currentIndex * 100}%)`;
@@ -365,10 +421,13 @@
         slideshow.addEventListener('mouseenter', stopAutoplay);
         slideshow.addEventListener('mouseleave', startAutoplay);
 
+        window.addEventListener('resize', updateAspectRatio);
+
         if (!isFade && slideInner) {
           slideInner.style.transform = `translateX(-${currentIndex * 100}%)`;
         }
 
+        updateAspectRatio();
         startAutoplay();
       }
 
@@ -410,7 +469,8 @@
 
   /* Aspect Heights - Desktop */
   @media (min-width: 769px) {
-    .slideshow--desktop-adapt {
+    .slideshow--desktop-adapt,
+    .slideshow--desktop-adapt-each {
       height: auto;
     }
     .slideshow--desktop-small {
@@ -430,7 +490,8 @@
 
   /* Aspect Heights - Mobile */
   @media (max-width: 768px) {
-    .slideshow--mobile-adapt {
+    .slideshow--mobile-adapt,
+    .slideshow--mobile-adapt-each {
       height: auto;
     }
     .slideshow--mobile-small {
@@ -893,7 +954,11 @@
       "options": [
         {
           "value": "adapt",
-          "label": "Adapt to media"
+          "label": "Adapt to first media"
+        },
+        {
+          "value": "adapt-each",
+          "label": "Adapt to each media (Original size)"
         },
         {
           "value": "small",
@@ -921,7 +986,11 @@
       "options": [
         {
           "value": "adapt",
-          "label": "Adapt to media"
+          "label": "Adapt to first media"
+        },
+        {
+          "value": "adapt-each",
+          "label": "Adapt to each media (Original size)"
         },
         {
           "value": "small",
