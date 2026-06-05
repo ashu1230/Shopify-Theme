@@ -330,6 +330,11 @@
         
         if (slides.length <= 1) return;
 
+        let currentIndex = 0;
+        let autoplayTimer = null;
+        const autoplay = slideshow.dataset.autoplay === 'true';
+        const speed = parseInt(slideshow.dataset.speed) || 5000;
+
         function updateAspectRatio() {
           const isMobile = window.innerWidth <= 768;
           const activeSlide = slides[currentIndex];
