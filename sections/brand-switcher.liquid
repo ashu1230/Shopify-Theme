@@ -1,6 +1,6 @@
 {%- if section.blocks.size > 0 -%}
   <div
-    class="brand-switcher brand-switcher--{{ section.settings.style }} full-width"
+    class="brand-switcher brand-switcher--{{ section.settings.style }} section-width--{{ section.settings.section_width | default: 'full-width' }}"
     role="navigation"
     aria-label="{{ 'brand_switcher.title' | t }}"
     id="BrandSwitcher-{{ section.id }}"
@@ -258,6 +258,34 @@
   "name": "t:general.brand_switcher",
   "class": "brand-switcher-section",
   "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "full-width"
+    },
     {
       "type": "select",
       "id": "style",

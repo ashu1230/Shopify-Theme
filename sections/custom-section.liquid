@@ -1,4 +1,4 @@
-<div class="custom-section full-width">
+<div class="custom-section section-width--{{ section.settings.section_width | default: 'full-width' }}">
   {% if section.settings.background_image %}
     <div class="custom-section__background">
       {{ section.settings.background_image | image_url: width: 2000 | image_tag }}
@@ -45,6 +45,34 @@
   "name": "t:general.custom_section",
   "blocks": [{ "type": "@theme" }],
   "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "full-width"
+    },
     {
       "type": "image_picker",
       "id": "background_image",

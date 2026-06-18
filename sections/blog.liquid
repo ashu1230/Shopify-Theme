@@ -5,6 +5,7 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/blog
 {% endcomment %}
 
+<div class="blog-section-wrapper section-width--{{ section.settings.section_width | default: 'page-width' }}">
 <h1>{{ blog.title }}</h1>
 
 {% paginate blog.articles by 5 %}
@@ -26,10 +27,40 @@
     {{- paginate | default_pagination -}}
   {%- endif -%}
 {% endpaginate %}
+</div>
 
 {% schema %}
 {
   "name": "t:general.blog",
-  "settings": []
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "page-width"
+    }
+  ]
 }
 {% endschema %}

@@ -6,6 +6,7 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/article
 {% endcomment %}
 
+<div class="article-section-wrapper section-width--{{ section.settings.section_width | default: 'page-width' }}">
 {% if article.image %}
   {{ article.image | image_url: width: 1000 | image_tag }}
 {% endif %}
@@ -59,10 +60,40 @@
     <input type="submit" value="{{ 'blog.comment_form_submit' | t }}">
   {% endform %}
 {% endif %}
+</div>
 
 {% schema %}
 {
   "name": "t:general.article",
-  "settings": []
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "page-width"
+    }
+  ]
 }
 {% endschema %}
