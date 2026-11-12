@@ -1,0 +1,40 @@
+{
+  "sections": {
+    "main": {
+      "type": "slideshow",
+      "settings": {
+        "height_desktop": "medium",
+        "height_mobile": "adapt",
+        "animation": "fade",
+        "autoplay": true,
+        "autoplay_speed": 5
+      },
+      "blocks": {
+        "slide_1": {
+          "type": "image",
+          "settings": {
+            "heading": "C2C: PRET",
+            "subheading": "<p>Explore lightweight, sophisticated summer wear.</p>",
+            "button_label": "Shop Pret",
+            "content_alignment": "center",
+            "overlay_opacity": 30
+          }
+        }
+      },
+      "block_order": [
+        "slide_1"
+      ]
+    },
+    "featured_products": {
+      "type": "featured-collection",
+      "settings": {
+        "title": "Featured Collection",
+        "subtitle": "C2C PRET"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "featured_products"
+  ]
+}

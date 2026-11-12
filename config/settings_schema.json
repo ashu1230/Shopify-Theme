@@ -63,78 +63,72 @@
     "name": "t:settings.colors",
     "settings": [
       {
-        "type": "header",
-        "content": "t:settings.primary_colors"
+        "type": "color_scheme_group",
+        "id": "color_schemes",
+        "definition": [
+          {
+            "type": "color",
+            "id": "background",
+            "label": "t:settings.scheme_background",
+            "default": "#FAFAF9"
+          },
+          {
+            "type": "color_background",
+            "id": "background_gradient",
+            "label": "t:settings.scheme_background_gradient"
+          },
+          {
+            "type": "color",
+            "id": "text",
+            "label": "t:settings.scheme_text",
+            "default": "#121212"
+          },
+          {
+            "type": "color",
+            "id": "button",
+            "label": "t:settings.scheme_button_background",
+            "default": "#121212"
+          },
+          {
+            "type": "color",
+            "id": "button_label",
+            "label": "t:settings.scheme_button_label",
+            "default": "#FFFFFF"
+          },
+          {
+            "type": "color",
+            "id": "secondary_button_label",
+            "label": "t:settings.scheme_secondary_button_label",
+            "default": "#121212"
+          },
+          {
+            "type": "color",
+            "id": "shadow",
+            "label": "t:settings.scheme_shadow",
+            "default": "#121212"
+          }
+        ],
+        "role": {
+          "text": "text",
+          "background": {
+            "solid": "background",
+            "gradient": "background_gradient"
+          },
+          "links": "secondary_button_label",
+          "icons": "secondary_button_label",
+          "primary_button": "button",
+          "on_primary_button": "button_label",
+          "primary_button_border": "button",
+          "secondary_button": "background",
+          "on_secondary_button": "secondary_button_label",
+          "secondary_button_border": "secondary_button_label"
+        }
       },
       {
-        "type": "color",
-        "id": "color_solid_button_label",
-        "default": "#FFFFFF",
-        "label": "t:settings.solid_button_label",
-        "info": "t:settings.solid_button_label_info"
-      },
-      {
-        "type": "color",
-        "id": "color_accent_1",
-        "default": "#121212",
-        "label": "t:settings.accent_1",
-        "info": "t:settings.accent_1_info"
-      },
-      {
-        "type": "color",
-        "id": "color_accent_1_gradient",
-        "label": "t:settings.accent_1_gradient"
-      },
-      {
-        "type": "color",
-        "id": "color_accent_2",
-        "default": "#45C0B6",
-        "label": "t:settings.accent_2"
-      },
-      {
-        "type": "color",
-        "id": "color_accent_2_gradient",
-        "label": "t:settings.accent_2_gradient"
-      },
-      {
-        "type": "header",
-        "content": "t:settings.secondary_colors"
-      },
-      {
-        "type": "color",
-        "id": "color_text",
-        "default": "#000000",
-        "label": "t:settings.text",
-        "info": "t:settings.text_info"
-      },
-      {
-        "type": "color",
-        "id": "color_outline_button",
-        "default": "#121212",
-        "label": "t:settings.outline_button",
-        "info": "t:settings.outline_button_info"
-      },
-      {
-        "type": "color",
-        "id": "color_background_1",
-        "default": "#FAFAF9",
-        "label": "t:settings.background_1"
-      },
-      {
-        "type": "color",
-        "id": "color_background_1_gradient",
-        "label": "t:settings.background_1_gradient"
-      },
-      {
-        "type": "color",
-        "id": "color_background_2",
-        "default": "#6B6B6B",
-        "label": "t:settings.background_2"
-      },
-      {
-        "type": "color",
-        "id": "color_background_2_gradient",
-        "label": "t:settings.background_2_gradient"
+        "type": "color_scheme",
+        "id": "default_color_scheme",
+        "label": "t:settings.default_color_scheme",
+        "default": "scheme-1"
       },
       {
         "type": "header",

@@ -30,7 +30,7 @@
           "type": "brand_tab",
           "settings": {
             "title": "C2C : PRET",
-            "link": "/pages/pret",
+            "link": "/?view=pret",
             "is_active": false,
             "background_color": "#666666",
             "active_background_color": "#333333",
@@ -43,7 +43,9 @@
         "tab-1",
         "tab-2"
       ],
-      "settings": {}
+      "settings": {
+        "style": "full-width"
+      }
     },
     "announcement-bar": {
       "type": "announcement-bar",
@@ -51,19 +53,53 @@
         "announcement-1": {
           "type": "announcement",
           "settings": {
-            "text": "Welcome to our store — Free shipping on orders over $50"
+            "text": "Welcome to Code to Couture — Complimentary standard shipping",
+            "link": "",
+            "brand_target": "couture"
+          }
+        },
+        "announcement-2": {
+          "type": "announcement",
+          "settings": {
+            "text": "C2C : PRET — Discover our new ready-to-wear collection",
+            "link": "/?view=pret",
+            "brand_target": "pret"
           }
         }
       },
       "block_order": [
-        "announcement-1"
+        "announcement-1",
+        "announcement-2"
       ],
-      "settings": {}
+      "settings": {
+        "brand_visibility": "all",
+        "color_scheme": "scheme-4",
+        "pret_color_scheme": "scheme-1",
+        "auto_rotate": true,
+        "rotate_speed": 5
+      }
     },
     "header": {
       "type": "header",
       "settings": {
-        "menu": "main-menu"
+        "brand_visibility": "all",
+        "enable_topbar": true,
+        "topbar_extra_item_text": "Customer service",
+        "topbar_extra_item_icon": "chat",
+        "logo_width": 150,
+        "menu": "main-menu",
+        "menu_items_alignment": "center",
+        "enable_scroll_effect": false,
+        "menu_parent_clickable_desktop": true,
+        "menu_parent_clickable_mobile": false,
+        "enable_sticky_header": true,
+        "sticky_header_type": "sticky_menu",
+        "customer_account_menu": "customer-account-main-menu",
+        "enable_pret_overrides": true,
+        "pret_color_scheme": "scheme-1",
+        "pret_logo_width": 150,
+        "pret_topbar_extra_text": "Customer care",
+        "pret_topbar_extra_link": ""
       }
     }
   },
