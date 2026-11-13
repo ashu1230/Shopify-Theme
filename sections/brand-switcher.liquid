@@ -1,5 +1,6 @@
 ﻿{%- if section.blocks.size > 0 -%}
   <div
+    class="brand-switcher brand-switcher--{{ section.settings.style }} section-width--{{ section.settings.section_width | default: 'full-width' }}"
     class="brand-switcher brand-switcher--{{ section.settings.style }} color-{{ section.settings.color_scheme }} gradient full-width"
     role="navigation"
     aria-label="{{ 'brand_switcher.title' | t }}"
@@ -306,6 +307,34 @@
       "id": "color_scheme",
       "label": "t:labels.color_scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "full-width"
     },
     {
       "type": "select",

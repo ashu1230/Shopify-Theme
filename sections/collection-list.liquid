@@ -1,0 +1,806 @@
+{%- assign layout_mode = section.settings.layout -%}
+{%- assign desktop_cols = section.settings.columns_desktop -%}
+{%- assign card_style = section.settings.card_style -%}
+{%- assign image_ratio = section.settings.image_ratio -%}
+
+<style>
+  #CollectionList-{{ section.id }} {
+    {% if section.settings.background_color != 'transparent' and section.settings.background_color != blank %}
+      background-color: {{ section.settings.background_color }};
+    {% endif %}
+    {% if section.settings.text_color != blank %}
+      --cl-text: {{ section.settings.text_color }};
+      color: {{ section.settings.text_color }};
+    {% endif %}
+    {% if section.settings.accent_color != blank %}
+      --cl-accent: {{ section.settings.accent_color }};
+    {% else %}
+      --cl-accent: var(--color-accent-1, #8c7355);
+    {% endif %}
+    --cl-cols-desktop: {{ desktop_cols }};
+  }
+</style>
+
+<div
+  id="CollectionList-{{ section.id }}"
+  class="collection-list-sec {% if section.settings.remove_padding_top %}collection-list-sec--no-pt{% endif %} {% if section.settings.remove_padding_bottom %}collection-list-sec--no-pb{% endif %} section-width--{{ section.settings.section_width | default: 'page-width' }}"
+>
+  <div class="cl-container">
+    {%- if section.settings.title != blank or section.settings.subtitle != blank or section.settings.description != blank -%}
+      <div class="cl-header">
+        {%- if section.settings.subtitle != blank -%}
+          <span class="cl-subtitle">{{ section.settings.subtitle | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.title != blank -%}
+          <h2 class="cl-title">{{ section.settings.title | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.description != blank -%}
+          <div class="cl-description">{{ section.settings.description }}</div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="cl-layout-wrapper cl-layout-wrapper--{{ layout_mode }}">
+      {%- if layout_mode == 'carousel' -%}
+        <button
+          type="button"
+          class="cl-arrow cl-arrow--prev"
+          aria-label="Previous collections"
+          disabled
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+        </button>
+      {%- endif -%}
+
+      <div
+        class="cl-grid cl-grid--{{ layout_mode }} cl-grid--cols-{{ desktop_cols }}"
+        id="CollectionGrid-{{ section.id }}"
+      >
+        {%- if section.blocks.size > 0 -%}
+          {%- for block in section.blocks -%}
+            {%- assign collection = collections[block.settings.collection] -%}
+            {%- assign title = block.settings.custom_title | default: collection.title | default: 'Collection' -%}
+            {%- assign image = block.settings.custom_image | default: collection.featured_image | default: collection.products.first.featured_media -%}
+            {%- assign link = collection.url | default: '#' -%}
+
+            <div class="cl-card-item cl-card-item--{{ card_style }} cl-card-item--ratio-{{ image_ratio }}" {{ block.shopify_attributes }}>
+              <a href="{{ link }}" class="cl-card-link">
+                <div class="cl-card-media-wrap">
+                  {%- if image != blank -%}
+                    <img
+                      src="{{ image | image_url: width: 800 }}"
+                      alt="{{ image.alt | escape | default: title }}"
+                      class="cl-card-img"
+                      loading="lazy"
+                      width="{{ image.width }}"
+                      height="{{ image.height }}"
+                      srcset="{{ image | image_url: width: 300 }} 300w, {{ image | image_url: width: 600 }} 600w, {{ image | image_url: width: 800 }} 800w"
+                      sizes="(max-width: 768px) 80vw, (max-width: 1024px) 40vw, 25vw"
+                    >
+                  {%- else -%}
+                    {{ 'collection-' | append: forloop.index | placeholder_svg_tag: 'cl-card-placeholder' }}
+                  {%- endif -%}
+
+                  {%- if card_style == 'overlay' -%}
+                    <div class="cl-card-overlay-content">
+                      <div class="cl-card-overlay-card">
+                        <h3 class="cl-card-title">{{ title }}</h3>
+                        {%- if collection != blank -%}
+                          <span class="cl-card-count">{{ collection.all_products_count }} items</span>
+                        {%- endif -%}
+                      </div>
+                    </div>
+                  {%- endif -%}
+                </div>
+
+                {%- if card_style != 'overlay' -%}
+                  <div class="cl-card-info cl-card-info--{{ card_style }}">
+                    <h3 class="cl-card-title">
+                      {{ title }}
+                      {%- if card_style == 'split' -%}
+                        <span class="cl-card-arrow" aria-hidden="true">→</span>
+                      {%- endif -%}
+                    </h3>
+                    {%- if collection != blank -%}
+                      <span class="cl-card-count">{{ collection.all_products_count }} items</span>
+                    {%- endif -%}
+                  </div>
+                {%- endif -%}
+              </a>
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          {%- for i in (1..desktop_cols) -%}
+            <div class="cl-card-item cl-card-item--{{ card_style }} cl-card-item--ratio-{{ image_ratio }}">
+              <div class="cl-card-link">
+                <div class="cl-card-media-wrap">
+                  {{ 'collection-' | append: i | placeholder_svg_tag: 'cl-card-placeholder' }}
+                  {%- if card_style == 'overlay' -%}
+                    <div class="cl-card-overlay-content">
+                      <div class="cl-card-overlay-card">
+                        <h3 class="cl-card-title">Example Collection {{ i }}</h3>
+                      </div>
+                    </div>
+                  {%- endif -%}
+                </div>
+                {%- if card_style != 'overlay' -%}
+                  <div class="cl-card-info cl-card-info--{{ card_style }}">
+                    <h3 class="cl-card-title">Example Collection {{ i }}</h3>
+                  </div>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+
+      {%- if layout_mode == 'carousel' -%}
+        <button
+          type="button"
+          class="cl-arrow cl-arrow--next"
+          aria-label="Next collections"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </button>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.button_label != blank -%}
+      <div class="cl-footer">
+        <a href="{{ section.settings.button_link | default: routes.all_products_collection_url }}" class="cl-btn">
+          {{ section.settings.button_label | escape }}
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+<script>
+  (function() {
+    function initCollectionList() {
+      const wrapper = document.getElementById('CollectionList-{{ section.id }}');
+      if (!wrapper) return;
+
+      const grid = wrapper.querySelector('.cl-grid--carousel');
+      const prevBtn = wrapper.querySelector('.cl-arrow--prev');
+      const nextBtn = wrapper.querySelector('.cl-arrow--next');
+
+      if (!grid) return;
+
+      function updateButtonStates() {
+        if (!prevBtn || !nextBtn) return;
+        const scrollLeft = grid.scrollLeft;
+        const maxScroll = grid.scrollWidth - grid.clientWidth;
+
+        prevBtn.disabled = scrollLeft <= 10;
+        nextBtn.disabled = scrollLeft >= maxScroll - 10;
+      }
+
+      grid.addEventListener('scroll', updateButtonStates);
+      window.addEventListener('resize', updateButtonStates);
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const card = grid.querySelector('.cl-card-item');
+          const cardWidth = card ? card.clientWidth : 300;
+          grid.scrollBy({ left: -(cardWidth + 24), behavior: 'smooth' });
+        });
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const card = grid.querySelector('.cl-card-item');
+          const cardWidth = card ? card.clientWidth : 300;
+          grid.scrollBy({ left: (cardWidth + 24), behavior: 'smooth' });
+        });
+      }
+
+      setTimeout(updateButtonStates, 500);
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initCollectionList);
+    } else {
+      initCollectionList();
+    }
+
+    document.addEventListener('shopify:section:load', function(e) {
+      if (e.target.id === 'shopify-section-{{ section.id }}') {
+        initCollectionList();
+      }
+    });
+  })();
+</script>
+
+{% stylesheet %}
+  .collection-list-sec {
+    width: 100%;
+    padding: 6rem 0;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .collection-list-sec--no-pt {
+    padding-top: 0 !important;
+  }
+  .collection-list-sec--no-pb {
+    padding-bottom: 0 !important;
+  }
+
+  .cl-container {
+    max-width: var(--page-width, 1440px);
+    margin: 0 auto;
+    padding: 0 clamp(1rem, 4vw, 3rem);
+    box-sizing: border-box;
+  }
+
+  /* Header */
+  .cl-header {
+    text-align: center;
+    margin-bottom: 3.5rem;
+  }
+  .cl-subtitle {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--cl-accent, #8c7355);
+    margin-bottom: 0.75rem;
+    font-family: var(--font-secondary--family, inherit);
+  }
+  .cl-title {
+    font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin: 0 0 1rem;
+    color: var(--cl-text, var(--color-text, #1a1a1a));
+    font-family: var(--font-primary--family, Georgia, serif);
+  }
+  .cl-description {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+    opacity: 0.7;
+  }
+
+  /* Grid layouts */
+  .cl-layout-wrapper {
+    position: relative;
+    width: 100%;
+  }
+
+  .cl-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  /* Grid Layout Mode */
+  .cl-grid--grid {
+    grid-template-columns: repeat(var(--cl-cols-desktop, 4), 1fr);
+  }
+
+  /* Carousel Layout Mode */
+  .cl-grid--carousel {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    gap: 1.5rem;
+    padding-bottom: 0.5rem;
+  }
+  .cl-grid--carousel::-webkit-scrollbar {
+    display: none;
+  }
+  .cl-grid--carousel .cl-card-item {
+    flex: 0 0 calc((100% - (var(--cl-cols-desktop) - 1) * 1.5rem) / var(--cl-cols-desktop));
+    scroll-snap-align: start;
+  }
+
+  /* Card Item */
+  .cl-card-item {
+    position: relative;
+    box-sizing: border-box;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .cl-card-link {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Card Media Wrapper */
+  .cl-card-media-wrap {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background-color: #f7f6f5;
+    transition: box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cl-card-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cl-card-placeholder {
+    width: 100%;
+    height: 100%;
+    display: block;
+    fill: rgba(0, 0, 0, 0.05);
+    background-color: #eae7e4;
+  }
+
+  /* Hover Lift & Zoom */
+  .cl-card-item:hover .cl-card-img {
+    transform: scale(1.06);
+  }
+  .cl-card-item:hover .cl-card-media-wrap {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  /* Aspect Ratios */
+  .cl-card-item--ratio-square .cl-card-media-wrap {
+    aspect-ratio: 1 / 1;
+  }
+  .cl-card-item--ratio-portrait .cl-card-media-wrap {
+    aspect-ratio: 4 / 5;
+  }
+  .cl-card-item--ratio-landscape .cl-card-media-wrap {
+    aspect-ratio: 16 / 9;
+  }
+  .cl-card-item--ratio-circle .cl-card-media-wrap {
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+  }
+
+  /* Standard Card Info */
+  .cl-card-info {
+    padding: 1.25rem 0 0;
+    text-align: center;
+  }
+  .cl-card-title {
+    font-size: 1.0625rem;
+    font-weight: 400;
+    margin: 0 0 0.25rem;
+    color: var(--cl-text, var(--color-text, #1a1a1a));
+    transition: color 0.35s ease;
+  }
+  .cl-card-item:hover .cl-card-title {
+    color: var(--cl-accent, #8c7355);
+  }
+  .cl-card-count {
+    font-size: 0.75rem;
+    opacity: 0.6;
+    letter-spacing: 0.02em;
+    font-family: var(--font-secondary--family, inherit);
+  }
+
+  /* Overlay Style Card */
+  .cl-card-overlay-content {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 50%, rgba(0,0,0,0.3) 100%);
+    padding: 1.5rem;
+    box-sizing: border-box;
+  }
+  .cl-card-overlay-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 1.25rem 2rem;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 80%;
+  }
+  .cl-card-overlay-card .cl-card-title {
+    font-size: 0.9375rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .cl-card-overlay-card .cl-card-count {
+    display: block;
+    margin-top: 0.25rem;
+  }
+
+  .cl-card-item--ratio-circle .cl-card-overlay-card {
+    width: 70%;
+    padding: 1rem;
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cl-card-item:hover .cl-card-overlay-card {
+    background: var(--color-text, #1a1a1a);
+    color: var(--color-background-1, #ffffff);
+  }
+  .cl-card-item:hover .cl-card-overlay-card .cl-card-title {
+    color: var(--color-background-1, #ffffff);
+  }
+
+  /* Minimal Editorial Style Card */
+  .cl-card-info--split {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    padding-bottom: 0.75rem;
+  }
+  .cl-card-info--split .cl-card-title {
+    font-size: 1.125rem;
+    font-family: var(--font-primary--family, Georgia, serif);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .cl-card-arrow {
+    display: inline-block;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: system-ui, sans-serif;
+  }
+  .cl-card-item:hover .cl-card-arrow {
+    transform: translateX(4px);
+  }
+
+  /* Carousel Navigation Arrows */
+  .cl-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-text, #1a1a1a);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    z-index: 5;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .cl-arrow[disabled] {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cl-arrow:hover {
+    background: var(--color-text, #1a1a1a);
+    color: #ffffff;
+    border-color: var(--color-text, #1a1a1a);
+  }
+  .cl-arrow--prev {
+    left: -22px;
+  }
+  .cl-arrow--next {
+    right: -22px;
+  }
+
+  /* Footer */
+  .cl-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: 4rem;
+  }
+  .cl-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 1.15rem 2.5rem;
+    background: var(--color-text, #1a1a1a);
+    color: var(--color-background-1, #ffffff);
+    border: 1px solid var(--color-text, #1a1a1a);
+    text-decoration: none;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    font-family: var(--font-secondary--family, inherit);
+  }
+  .cl-btn:hover {
+    background: transparent;
+    color: var(--color-text, #1a1a1a);
+  }
+
+  /* Breakpoints */
+  @media (max-width: 1200px) {
+    .cl-arrow--prev {
+      left: -10px;
+    }
+    .cl-arrow--next {
+      right: -10px;
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .cl-grid--grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .cl-grid--carousel .cl-card-item {
+      flex: 0 0 35%;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .collection-list-sec {
+      padding: 4rem 0;
+    }
+    .cl-header {
+      margin-bottom: 2.5rem;
+    }
+    .cl-arrow {
+      display: none !important;
+    }
+    .cl-grid--grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+    }
+    .cl-grid--carousel {
+      gap: 1rem;
+      padding: 0 clamp(1rem, 4vw, 3rem);
+      margin: 0 calc(-1 * clamp(1rem, 4vw, 3rem));
+      width: calc(100% + 2 * clamp(1rem, 4vw, 3rem));
+    }
+    .cl-grid--carousel .cl-card-item {
+      flex: 0 0 65%;
+      scroll-snap-align: center;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .cl-grid--grid {
+      grid-template-columns: 1fr;
+    }
+    .cl-grid--carousel .cl-card-item {
+      flex: 0 0 80%;
+    }
+  }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Collection list",
+  "class": "collection-list-section",
+  "tag": "section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "page-width"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Heading",
+      "default": "Shop by Collection"
+    },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Subheading",
+      "default": "CURATED CHOICES"
+    },
+    {
+      "type": "richtext",
+      "id": "description",
+      "label": "Description"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        {
+          "value": "grid",
+          "label": "Grid"
+        },
+        {
+          "value": "carousel",
+          "label": "Carousel (swipe)"
+        }
+      ],
+      "default": "grid"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "label": "Columns on desktop",
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "card_style",
+      "label": "Card style",
+      "options": [
+        {
+          "value": "standard",
+          "label": "Standard (title below image)"
+        },
+        {
+          "value": "overlay",
+          "label": "Overlay (title on top of image)"
+        },
+        {
+          "value": "split",
+          "label": "Minimal editorial"
+        }
+      ],
+      "default": "standard"
+    },
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "Image aspect ratio",
+      "options": [
+        {
+          "value": "square",
+          "label": "Square (1:1)"
+        },
+        {
+          "value": "portrait",
+          "label": "Portrait (4:5)"
+        },
+        {
+          "value": "landscape",
+          "label": "Landscape (16:9)"
+        },
+        {
+          "value": "circle",
+          "label": "Circular"
+        }
+      ],
+      "default": "square"
+    },
+    {
+      "type": "header",
+      "content": "Button"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "View all collections"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "Button link"
+    },
+    {
+      "type": "header",
+      "content": "Colors"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "Background",
+      "default": "transparent"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Text",
+      "default": "#1a1a1a"
+    },
+    {
+      "type": "color",
+      "id": "accent_color",
+      "label": "Accent (Hover / Button)",
+      "default": "#c5a880"
+    },
+    {
+      "type": "header",
+      "content": "Padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_top",
+      "label": "Remove padding top",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_bottom",
+      "label": "Remove padding bottom",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collection",
+      "name": "Collection",
+      "settings": [
+        {
+          "type": "collection",
+          "id": "collection",
+          "label": "Collection"
+        },
+        {
+          "type": "image_picker",
+          "id": "custom_image",
+          "label": "Custom image",
+          "info": "Overrides the featured collection image."
+        },
+        {
+          "type": "text",
+          "id": "custom_title",
+          "label": "Custom title",
+          "info": "Overrides the collection title."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection list",
+      "blocks": [
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        },
+        {
+          "type": "collection"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
