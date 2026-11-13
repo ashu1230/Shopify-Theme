@@ -1,4 +1,5 @@
 <div class="custom-section section-width--{{ section.settings.section_width | default: 'full-width' }}">
+<div class="custom-section full-width color-{{ section.settings.color_scheme }} gradient">
   {% if section.settings.background_image %}
     <div class="custom-section__background">
       {{ section.settings.background_image | image_url: width: 2000 | image_tag }}
@@ -43,6 +44,9 @@
 {% schema %}
 {
   "name": "t:general.custom_section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
   "blocks": [{ "type": "@theme" }],
   "settings": [
     {
@@ -72,6 +76,10 @@
         }
       ],
       "default": "full-width"
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
     },
     {
       "type": "image_picker",

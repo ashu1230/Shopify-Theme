@@ -1,4 +1,4 @@
-<footer>
+<footer class="color-{{ section.settings.color_scheme }} gradient">
   <div class="footer__copyright">
     &copy;
     {{ 'now' | date: '%Y' }}
@@ -25,10 +25,11 @@
     display: flex;
     justify-content: space-between;
     margin-top: 2rem;
+    padding: 2rem var(--page-margin, 1.5rem);
   }
   footer a {
     text-decoration: none;
-    color: var(--color-foreground);
+    color: inherit;
   }
   footer .footer__links,
   footer .footer__payment {
@@ -40,7 +41,16 @@
 {% schema %}
 {
   "name": "t:general.footer",
+  "enabled_on": {
+    "groups": ["footer"]
+  },
   "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
     {
       "type": "link_list",
       "id": "menu",

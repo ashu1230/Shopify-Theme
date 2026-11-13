@@ -65,6 +65,7 @@
   <div 
     id="Slideshow-{{ section.id }}" 
     class="slideshow slideshow--desktop-{{ section.settings.height_desktop }} slideshow--mobile-{{ section.settings.height_mobile }} slideshow--{{ section.settings.animation }} {% if section.settings.remove_padding_top %}slideshow--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}slideshow--no-padding-bottom{% endif %} section-width--{{ section.settings.section_width | default: 'full-width' }}"
+    class="slideshow slideshow--desktop-{{ section.settings.height_desktop }} slideshow--mobile-{{ section.settings.height_mobile }} slideshow--{{ section.settings.animation }} color-{{ section.settings.color_scheme }} gradient {% if section.settings.remove_padding_top %}slideshow--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}slideshow--no-padding-bottom{% endif %} full-width"
     data-autoplay="{{ section.settings.autoplay }}"
     data-speed="{{ section.settings.autoplay_speed | times: 1000 }}"
     role="region"
@@ -225,7 +226,7 @@
             <div class="slideshow__content">
               {%- if block.settings.subheading != blank -%}
                 <div class="slideshow__subheading slideshow__animated" style="color: {{ block.settings.text_color }};">
-                  {{ block.settings.subheading | escape }}
+                  {{ block.settings.subheading | remove: '<p>' | remove: '</p>' | remove: '<p >' }}
                 </div>
               {%- endif -%}
 
@@ -427,6 +428,50 @@
         slideshow.addEventListener('mouseleave', startAutoplay);
 
         window.addEventListener('resize', updateAspectRatio);
+
+        // Listen for brand switcher events
+        window.addEventListener('brand:change', function(e) {
+          if (!e.detail) return;
+          const targetIndex = e.detail.index;
+          const targetTitle = (e.detail.title || '').toLowerCase();
+          const targetHandle = (e.detail.handle || '').toLowerCase();
+
+          let matchedIndex = -1;
+          slides.forEach((slide, idx) => {
+            const heading = (slide.querySelector('.slideshow__heading')?.textContent || '').toLowerCase();
+            if (heading) {
+              if (heading.includes(targetTitle) || targetTitle.includes(heading.trim()) ||
+                  (targetTitle.includes('pret') && heading.includes('pret')) ||
+                  (targetTitle.includes('couture') && heading.includes('couture')) ||
+                  (targetHandle.includes('pret') && heading.includes('pret')) ||
+                  (targetHandle.includes('couture') && heading.includes('couture'))) {
+                matchedIndex = idx;
+              }
+            }
+          });
+
+          if (matchedIndex !== -1) {
+            showSlide(matchedIndex);
+            startAutoplay();
+          } else if (typeof targetIndex === 'number' && targetIndex >= 0 && targetIndex < slides.length) {
+            showSlide(targetIndex);
+            startAutoplay();
+          }
+        });
+
+        // Sync initial slide with active brand if specified in URL or session
+        (function() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const initialBrand = (urlParams.get('brand') || (window.location.hash ? window.location.hash.replace('#', '') : '')).toLowerCase();
+          if (initialBrand) {
+            slides.forEach((slide, idx) => {
+              const heading = (slide.querySelector('.slideshow__heading')?.textContent || '').toLowerCase();
+              if (heading && ((initialBrand.includes('pret') && heading.includes('pret')) || (initialBrand.includes('couture') && heading.includes('couture')))) {
+                showSlide(idx);
+              }
+            });
+          }
+        })();
 
         if (!isFade && slideInner) {
           slideInner.style.transform = `translateX(-${currentIndex * 100}%)`;
@@ -672,6 +717,12 @@
     text-transform: uppercase;
     margin-bottom: 1rem;
     opacity: 0.95;
+  }
+  .slideshow__subheading p {
+    margin: 0;
+    display: inline;
+    font: inherit;
+    color: inherit;
   }
 
   .slideshow__heading {
@@ -951,7 +1002,16 @@
 {
   "name": "Slideshow",
   "class": "slideshow-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
   "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-4"
+    },
     {
       "type": "select",
       "id": "section_width",

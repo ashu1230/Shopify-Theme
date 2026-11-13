@@ -21,32 +21,13 @@
     --page-width: {{ settings.max_page_width }};
     --page-margin: {{ settings.min_page_margin }}px;
 
-    /* Primary colors */
-    --color-solid-button-label: {{ settings.color_solid_button_label }};
-    --color-accent-1: {{ settings.color_accent_1 }};
-    --color-accent-1-gradient: {% if settings.color_accent_1_gradient != blank %}{{ settings.color_accent_1_gradient }}{% else %}{{ settings.color_accent_1 }}{% endif %};
-    --color-accent-2: {{ settings.color_accent_2 }};
-    --color-accent-2-gradient: {% if settings.color_accent_2_gradient != blank %}{{ settings.color_accent_2_gradient }}{% else %}{{ settings.color_accent_2 }}{% endif %};
-
-    /* Secondary colors */
-    --color-text: {{ settings.color_text }};
-    --color-outline-button: {{ settings.color_outline_button }};
-    --color-background-1: {{ settings.color_background_1 }};
-    --color-background-1-gradient: {% if settings.color_background_1_gradient != blank %}{{ settings.color_background_1_gradient }}{% else %}{{ settings.color_background_1 }}{% endif %};
-    --color-background-2: {{ settings.color_background_2 }};
-    --color-background-2-gradient: {% if settings.color_background_2_gradient != blank %}{{ settings.color_background_2_gradient }}{% else %}{{ settings.color_background_2 }}{% endif %};
-
-    /* Backward compatible aliases */
-    --color-foreground: {{ settings.color_text }};
-    --color-background: {{ settings.color_background_1 }};
-
-    /* Product colors */
+    /* Product colors (global, not per-scheme) */
     --color-star-rating: {{ settings.color_star_rating }};
     --color-on-sale: {{ settings.color_on_sale }};
     --color-sold-out: {{ settings.color_sold_out }};
     --color-custom-badge: {{ settings.color_custom_badge }};
 
-    /* Notification colors */
+    /* Notification colors (global, not per-scheme) */
     --color-success: {{ settings.color_success }};
     --color-warning: {{ settings.color_warning }};
     --color-error: {{ settings.color_error }};
@@ -55,4 +36,64 @@
     --style-border-radius-inputs: {{ settings.input_corner_radius }}px;
     --style-border-radius-buttons: {{ settings.button_corner_radius }}px;
   }
+
+  {% # Output a CSS class for every color scheme so sections can use them %}
+  {% for scheme in settings.color_schemes %}
+    .color-{{ scheme.id }} {
+      --color-background: {{ scheme.settings.background.red }}, {{ scheme.settings.background.green }}, {{ scheme.settings.background.blue }};
+      --color-background-hex: {{ scheme.settings.background }};
+      --color-background-gradient: {% if scheme.settings.background_gradient != blank %}{{ scheme.settings.background_gradient }}{% else %}{{ scheme.settings.background }}{% endif %};
+      --color-text: {{ scheme.settings.text.red }}, {{ scheme.settings.text.green }}, {{ scheme.settings.text.blue }};
+      --color-text-hex: {{ scheme.settings.text }};
+      --color-button: {{ scheme.settings.button.red }}, {{ scheme.settings.button.green }}, {{ scheme.settings.button.blue }};
+      --color-button-hex: {{ scheme.settings.button }};
+      --color-button-label: {{ scheme.settings.button_label.red }}, {{ scheme.settings.button_label.green }}, {{ scheme.settings.button_label.blue }};
+      --color-button-label-hex: {{ scheme.settings.button_label }};
+      --color-secondary-button-label: {{ scheme.settings.secondary_button_label.red }}, {{ scheme.settings.secondary_button_label.green }}, {{ scheme.settings.secondary_button_label.blue }};
+      --color-secondary-button-label-hex: {{ scheme.settings.secondary_button_label }};
+      --color-shadow: {{ scheme.settings.shadow.red }}, {{ scheme.settings.shadow.green }}, {{ scheme.settings.shadow.blue }};
+
+      /* Backward-compatible aliases */
+      --color-foreground: rgb({{ scheme.settings.text.red }}, {{ scheme.settings.text.green }}, {{ scheme.settings.text.blue }});
+      --color-accent-1: {{ scheme.settings.button }};
+      --color-solid-button-label: {{ scheme.settings.button_label }};
+      /* Direct color application */
+      color: rgb(var(--color-text));
+      background-color: rgb(var(--color-background));
+    }
+
+    .color-{{ scheme.id }}.gradient {
+      background: {% if scheme.settings.background_gradient != blank %}{{ scheme.settings.background_gradient }}{% else %}rgb(var(--color-background)){% endif %};
+    }
+  {% endfor %}
+
+  {% # Apply the default scheme to :root so un-schemed elements inherit it %}
+  {% assign default_scheme = settings.color_schemes | where: 'id', settings.default_color_scheme | first %}
+  {% if default_scheme %}
+    :root {
+      --color-background: {{ default_scheme.settings.background.red }}, {{ default_scheme.settings.background.green }}, {{ default_scheme.settings.background.blue }};
+      --color-background-hex: {{ default_scheme.settings.background }};
+      --color-background-gradient: {% if default_scheme.settings.background_gradient != blank %}{{ default_scheme.settings.background_gradient }}{% else %}{{ default_scheme.settings.background }}{% endif %};
+      --color-text: {{ default_scheme.settings.text.red }}, {{ default_scheme.settings.text.green }}, {{ default_scheme.settings.text.blue }};
+      --color-text-hex: {{ default_scheme.settings.text }};
+      --color-button: {{ default_scheme.settings.button.red }}, {{ default_scheme.settings.button.green }}, {{ default_scheme.settings.button.blue }};
+      --color-button-hex: {{ default_scheme.settings.button }};
+      --color-button-label: {{ default_scheme.settings.button_label.red }}, {{ default_scheme.settings.button_label.green }}, {{ default_scheme.settings.button_label.blue }};
+      --color-button-label-hex: {{ default_scheme.settings.button_label }};
+      --color-secondary-button-label: {{ default_scheme.settings.secondary_button_label.red }}, {{ default_scheme.settings.secondary_button_label.green }}, {{ default_scheme.settings.secondary_button_label.blue }};
+      --color-secondary-button-label-hex: {{ default_scheme.settings.secondary_button_label }};
+      --color-shadow: {{ default_scheme.settings.shadow.red }}, {{ default_scheme.settings.shadow.green }}, {{ default_scheme.settings.shadow.blue }};
+
+      /* Backward-compatible aliases */
+      --color-foreground: rgb({{ default_scheme.settings.text.red }}, {{ default_scheme.settings.text.green }}, {{ default_scheme.settings.text.blue }});
+      --color-accent-1: {{ default_scheme.settings.button }};
+      --color-solid-button-label: {{ default_scheme.settings.button_label }};
+      --color-outline-button: {{ default_scheme.settings.secondary_button_label }};
+
+      color: rgb(var(--color-text));
+      background-color: rgb(var(--color-background));
+    }
+  {% endif %}
 {% endstyle %}
+
+

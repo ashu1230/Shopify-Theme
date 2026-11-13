@@ -4,6 +4,7 @@
 
 <div class="hello-world-section section-width--{{ section.settings.section_width | default: 'page-width' }}">
   <div class="welcome full-width">
+<div class="welcome full-width color-{{ section.settings.color_scheme }} gradient">
   <div class="welcome-content">
     <div>
       <h1>Hello, World!</h1>
@@ -166,6 +167,15 @@
         }
       ],
       "default": "page-width"
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
     }
   ],
   "presets": [

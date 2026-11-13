@@ -1,0 +1,40 @@
+{
+  "sections": {
+    "main": {
+      "type": "slideshow",
+      "settings": {
+        "height_desktop": "medium",
+        "height_mobile": "adapt",
+        "animation": "fade",
+        "autoplay": true,
+        "autoplay_speed": 5
+      },
+      "blocks": {
+        "slide_1": {
+          "type": "image",
+          "settings": {
+            "heading": "NOT SO COUTURE",
+            "subheading": "<p>Discover the latest collection of Not So Couture wear.</p>",
+            "button_label": "Discover Collection",
+            "content_alignment": "center",
+            "overlay_opacity": 30
+          }
+        }
+      },
+      "block_order": [
+        "slide_1"
+      ]
+    },
+    "featured_products": {
+      "type": "featured-collection",
+      "settings": {
+        "title": "Not So Couture Collection",
+        "subtitle": "NOT SO COUTURE"
+      }
+    }
+  },
+  "order": [
+    "main",
+    "featured_products"
+  ]
+}
