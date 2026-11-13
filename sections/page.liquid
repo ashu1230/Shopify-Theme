@@ -5,6 +5,10 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/page
 {% endcomment %}
 
+<div class="page-section-wrapper section-width--{{ section.settings.section_width | default: 'page-width' }}">
+<h1>{{ page.title }}</h1>
+
+{{ page.content }}
 <div class="page-section color-{{ section.settings.color_scheme }} gradient">
   <h1>{{ page.title }}</h1>
 
@@ -14,6 +18,34 @@
 {% schema %}
 {
   "name": "t:general.page",
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "page-width"
   "disabled_on": {
     "groups": ["header", "footer"]
   },

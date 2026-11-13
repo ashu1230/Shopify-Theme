@@ -5,6 +5,8 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
 
+<div class="collection-section-wrapper section-width--{{ section.settings.section_width | default: 'page-width' }}">
+<h1>{{ collection.title }}</h1>
 <div class="collection-section color-{{ section.settings.color_scheme }} gradient">
   <h1>{{ collection.title }}</h1>
 
@@ -33,6 +35,7 @@
     {% endpaginate %}
   </div>
 </div>
+</div>
 
 {% stylesheet %}
   .collection-products {
@@ -44,6 +47,34 @@
 {% schema %}
 {
   "name": "t:general.collection",
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "page-width"
   "disabled_on": {
     "groups": ["header", "footer"]
   },

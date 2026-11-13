@@ -1,5 +1,6 @@
 {%- assign collection = collections[section.settings.collection] -%}
 
+<div id="FeaturedCollection-{{ section.id }}" class="featured-collection section-{{ section.id }} {% if section.settings.remove_padding_top %}featured-collection--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}featured-collection--no-padding-bottom{% endif %} section-width--{{ section.settings.section_width | default: 'page-width' }}">
 <div id="FeaturedCollection-{{ section.id }}" class="featured-collection section-{{ section.id }} color-{{ section.settings.color_scheme }} gradient {% if section.settings.remove_padding_top %}featured-collection--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}featured-collection--no-padding-bottom{% endif %}">
   <div class="page-width">
     {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
@@ -704,6 +705,32 @@
   },
   "settings": [
     {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "page-width"
       "type": "color_scheme",
       "id": "color_scheme",
       "label": "t:labels.color_scheme",

@@ -2,6 +2,8 @@
   Welcome to Shopify theme development!
 {% endcomment %}
 
+<div class="hello-world-section section-width--{{ section.settings.section_width | default: 'page-width' }}">
+  <div class="welcome full-width">
 <div class="welcome full-width color-{{ section.settings.color_scheme }} gradient">
   <div class="welcome-content">
     <div>
@@ -51,8 +53,12 @@
     <p>{{ 'Follow best practices' | link_to: 'https://shopify.dev/docs/storefronts/themes/best-practices' }}</p>
   </div>
 </div>
+</div>
 
 {% stylesheet %}
+  .hello-world-section {
+    width: 100%;
+  }
   .welcome {
     display: grid;
     grid-template-columns: var(--content-grid);
@@ -133,6 +139,34 @@
 {% schema %}
 {
   "name": "Hello World",
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_width",
+      "label": "Section width",
+      "options": [
+        {
+          "value": "full-width",
+          "label": "Full width"
+        },
+        {
+          "value": "small",
+          "label": "Small"
+        },
+        {
+          "value": "medium",
+          "label": "Medium"
+        },
+        {
+          "value": "large",
+          "label": "Large"
+        },
+        {
+          "value": "page-width",
+          "label": "Page content"
+        }
+      ],
+      "default": "page-width"
   "disabled_on": {
     "groups": ["header", "footer"]
   },

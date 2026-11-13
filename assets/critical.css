@@ -112,6 +112,34 @@ body {
 }
 
 /* Child elements that use the full-width utility class span the entire viewport. */
-.shopify-section > .full-width {
+.shopify-section > .full-width,
+.shopify-section > .section-width--full-width {
   grid-column: 1 / -1;
+  width: 100%;
+}
+
+.shopify-section > .section-width--page-width {
+  grid-column: 2;
+  width: 100%;
+}
+
+.shopify-section > .section-width--small {
+  grid-column: 2;
+  width: 100%;
+  max-width: 800px;
+  justify-self: center;
+}
+
+.shopify-section > .section-width--medium {
+  grid-column: 2;
+  width: 100%;
+  max-width: 1000px;
+  justify-self: center;
+}
+
+.shopify-section > .section-width--large {
+  grid-column: 2;
+  width: 100%;
+  max-width: 1200px;
+  justify-self: center;
 }
