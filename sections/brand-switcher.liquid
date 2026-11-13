@@ -1,15 +1,52 @@
 {%- if section.blocks.size > 0 -%}
   <div
-    class="brand-switcher brand-switcher--{{ section.settings.style }} full-width"
+    class="brand-switcher brand-switcher--{{ section.settings.style }} color-{{ section.settings.color_scheme }} gradient full-width"
     role="navigation"
     aria-label="{{ 'brand_switcher.title' | t }}"
     id="BrandSwitcher-{{ section.id }}"
+    data-section-id="{{ section.id }}"
   >
-    <div class="brand-switcher__container">
+    <div class="brand-switcher__container" role="tablist">
       {%- for block in section.blocks -%}
+        {%- assign brand_handle = block.settings.title | handleize -%}
+        {%- assign tab_link = block.settings.link -%}
+        {%- if tab_link == blank -%}
+          {%- if forloop.first -%}
+            {%- assign tab_link = '/' -%}
+          {%- else -%}
+            {%- assign tab_link = '/?view=' | append: brand_handle -%}
+          {%- endif -%}
+        {%- endif -%}
+
+        {%- assign is_tab_active = false -%}
+        {%- if template.suffix != blank -%}
+          {%- if brand_handle contains template.suffix or template.suffix contains brand_handle -%}
+            {%- assign is_tab_active = true -%}
+          {%- endif -%}
+        {%- elsif template.name == 'index' and template.suffix == blank -%}
+          {%- if forloop.first or block.settings.is_active -%}
+            {%- assign is_tab_active = true -%}
+          {%- endif -%}
+        {%- elsif block.settings.link != blank and request.path == block.settings.link -%}
+          {%- assign is_tab_active = true -%}
+        {%- elsif block.settings.is_active -%}
+          {%- assign is_tab_active = true -%}
+        {%- endif -%}
+
+        {%- assign brand_role = 'primary' -%}
+        {%- unless forloop.first -%}
+          {%- assign brand_role = 'secondary' -%}
+        {%- endunless -%}
+
         <a
-          href="{{ block.settings.link }}"
-          class="brand-switcher__tab{% if block.settings.is_active %} is-active{% endif %}"
+          href="{{ tab_link }}"
+          class="brand-switcher__tab{% if is_tab_active %} is-active{% endif %}"
+          role="tab"
+          aria-selected="{% if is_tab_active %}true{% else %}false{% endif %}"
+          data-brand-index="{{ forloop.index0 }}"
+          data-brand-key="{{ brand_role }}"
+          data-brand-handle="{{ brand_handle }}"
+          data-brand-title="{{ block.settings.title | escape }}"
           {{ block.shopify_attributes }}
           style="
             --tab-bg: {{ block.settings.background_color }};
@@ -47,21 +84,158 @@
         }
       }
 
+      function syncActiveTabFromUrl(switcher) {
+        const tabs = switcher.querySelectorAll('.brand-switcher__tab');
+        if (tabs.length === 0) return;
+
+        const currentPath = window.location.pathname;
+        const currentSearch = window.location.search;
+        const urlParams = new URLSearchParams(currentSearch);
+        const currentView = (urlParams.get('view') || urlParams.get('brand') || '').toLowerCase();
+
+        let activeTab = null;
+
+        // 1. Match by ?view= (e.g. ?view=pret or ?view=custom) or ?brand=
+        if (currentView) {
+          tabs.forEach(tab => {
+            const handle = (tab.dataset.brandHandle || '').toLowerCase();
+            const href = (tab.getAttribute('href') || '').toLowerCase();
+            if (handle === currentView || handle.includes(currentView) || currentView.includes(handle) || href.includes('view=' + currentView) || href.includes('brand=' + currentView)) {
+              activeTab = tab;
+            }
+          });
+        }
+
+        // 2. Match on default index homepage
+        if (!activeTab && currentPath === '/' && !currentView) {
+          tabs.forEach((tab, index) => {
+            const href = tab.getAttribute('href') || '';
+            const key = tab.dataset.brandKey;
+            if (index === 0 || key === 'primary' || href === '/') {
+              if (!activeTab) activeTab = tab;
+            }
+          });
+          if (!activeTab) activeTab = tabs[0];
+        }
+
+        // 3. Match by pathname if on another page
+        if (!activeTab && currentPath !== '/') {
+          tabs.forEach(tab => {
+            const href = tab.getAttribute('href') || '';
+            const pathOnly = href.split('?')[0];
+            if (pathOnly === currentPath && pathOnly !== '/') {
+              activeTab = tab;
+            }
+          });
+        }
+
+        // Fallback to first tab
+        if (!activeTab) activeTab = tabs[0];
+
+        // Apply dynamic highlighting and propagate active brand state
+        if (activeTab) {
+          const tabKey = activeTab.dataset.brandKey || (Array.from(tabs).indexOf(activeTab) === 0 ? 'primary' : 'secondary');
+          const handle = (activeTab.dataset.brandHandle || '').toLowerCase();
+          const isSecondary = (tabKey === 'secondary');
+
+          document.documentElement.setAttribute('data-active-brand', tabKey);
+          if (document.body) {
+            document.body.classList.toggle('brand-mode--secondary', isSecondary);
+            document.body.classList.toggle('brand-mode--primary', !isSecondary);
+            document.body.classList.toggle('brand-mode--pret', isSecondary);
+            document.body.classList.toggle('brand-mode--couture', !isSecondary);
+          }
+
+          document.querySelectorAll('[data-brand-visibility]').forEach(function(el) {
+            const vis = el.getAttribute('data-brand-visibility');
+            if (vis === 'all') {
+              el.style.display = '';
+            } else if (vis === tabKey || (isSecondary && (vis === 'pret' || vis === 'secondary')) || (!isSecondary && (vis === 'couture' || vis === 'primary'))) {
+              el.style.display = '';
+            } else {
+              el.style.display = 'none';
+            }
+          });
+
+          document.querySelectorAll('[data-brand-target]').forEach(function(el) {
+            const target = el.getAttribute('data-brand-target');
+            if (target === 'all') {
+              el.style.display = '';
+            } else if (target === tabKey || (isSecondary && (target === 'pret' || target === 'secondary')) || (!isSecondary && (target === 'couture' || target === 'primary'))) {
+              el.style.display = '';
+            } else {
+              el.style.display = 'none';
+            }
+          });
+
+          window.dispatchEvent(new CustomEvent('theme:brand:change', {
+            detail: {
+              brand: tabKey,
+              handle: handle,
+              title: activeTab.dataset.brandTitle
+            }
+          }));
+
+          tabs.forEach(tab => {
+            if (tab === activeTab) {
+              tab.classList.add('is-active');
+              tab.setAttribute('aria-selected', 'true');
+            } else {
+              tab.classList.remove('is-active');
+              tab.setAttribute('aria-selected', 'false');
+            }
+          });
+        }
+      }
+
+      function setupTabEvents(switcher) {
+        if (switcher._eventsAttached) return;
+        switcher._eventsAttached = true;
+
+        switcher.addEventListener('click', function(e) {
+          const tab = e.target.closest('.brand-switcher__tab');
+          if (!tab) return;
+
+          const targetHref = tab.getAttribute('href') || '';
+          if (!targetHref) return;
+
+          // Resolve target URL relative to origin
+          const targetUrl = new URL(targetHref, window.location.origin);
+          const currentUrl = new URL(window.location.href);
+
+          const isSamePath = (targetUrl.pathname === currentUrl.pathname) ||
+                             (targetUrl.pathname === '/' && currentUrl.pathname === '/');
+          const isSameSearch = (targetUrl.search === currentUrl.search);
+
+          // If clicking the currently active tab on the same page, prevent reload
+          if (isSamePath && isSameSearch) {
+            e.preventDefault();
+            return;
+          }
+
+          // Otherwise, allow redirection to the brand's dedicated homepage
+        });
+      }
+
       function initSwitcher() {
         const switcher = document.getElementById('BrandSwitcher-{{ section.id }}');
         if (!switcher) return;
+
+        setupTabEvents(switcher);
 
         const style = '{{ section.settings.style }}';
         if (style !== 'full-width') {
           const dest = document.querySelector('.header__top-left');
           if (dest) {
             teleport(switcher, dest);
+            setupTabEvents(switcher);
           } else {
             // Use MutationObserver to wait for .header__top-left to appear in DOM
             const observer = new MutationObserver(function(mutations, obs) {
               const target = document.querySelector('.header__top-left');
               if (target) {
                 teleport(switcher, target);
+                setupTabEvents(switcher);
                 obs.disconnect();
               }
             });
@@ -75,7 +249,7 @@
           if (originalContainer && !originalContainer.contains(switcher)) {
             originalContainer.appendChild(switcher);
           }
-          // Remove switchers from both desktop slots
+          // Remove switchers from desktop slots if full-width
           const destTop = document.querySelector('.header__top-left');
           if (destTop) {
             const existingSwitchers = destTop.querySelectorAll('.brand-switcher');
@@ -89,10 +263,24 @@
             existingSwitchers.forEach(el => el.remove());
           }
         }
+
+        syncActiveTabFromUrl(switcher);
       }
 
-      // Run immediately
-      initSwitcher();
+      // Handle browser back / forward navigation
+      window.addEventListener('popstate', function() {
+        const switcher = document.getElementById('BrandSwitcher-{{ section.id }}');
+        if (switcher) {
+          syncActiveTabFromUrl(switcher);
+        }
+      });
+
+      // Run on DOM ready or immediately
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSwitcher);
+      } else {
+        initSwitcher();
+      }
 
       document.addEventListener('shopify:section:load', function(e) {
         if (e.target.id === 'shopify-section-{{ section.id }}' || e.target.classList.contains('brand-switcher-section')) {
@@ -119,8 +307,13 @@
 
   .brand-switcher__tab {
     text-decoration: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease,
+                box-shadow 0.3s ease;
     cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .brand-switcher__tab:hover {
@@ -155,8 +348,8 @@
   }
 
   .brand-switcher--full-width .brand-switcher__tab.is-active {
-    background-color: var(--tab-bg-active, #333333);
-    color: var(--tab-text-active, #ffffff);
+    background-color: var(--tab-bg-active, #333333) !important;
+    color: var(--tab-text-active, #ffffff) !important;
   }
 
   .brand-switcher--full-width .brand-switcher__label {
@@ -184,7 +377,7 @@
     justify-content: center;
     padding: 0.5rem 1.25rem;
     min-height: 2rem;
-    background-color: transparent;
+    background-color: var(--tab-bg, transparent);
     color: var(--tab-text, #333333);
     border-right: 1.5px solid var(--color-foreground, #333);
   }
@@ -194,8 +387,8 @@
   }
 
   .brand-switcher--buttons .brand-switcher__tab.is-active {
-    background-color: var(--tab-bg-active, #333333);
-    color: var(--tab-text-active, #ffffff);
+    background-color: var(--tab-bg-active, #333333) !important;
+    color: var(--tab-text-active, #ffffff) !important;
   }
 
   .brand-switcher--buttons .brand-switcher__label {
@@ -224,13 +417,13 @@
     justify-content: center;
     padding: 0.4rem 1.25rem;
     border-radius: 100px;
-    background-color: transparent;
+    background-color: var(--tab-bg, transparent);
     color: var(--tab-text, #666666);
   }
 
   .brand-switcher--pills .brand-switcher__tab.is-active {
-    background-color: var(--tab-bg-active, #ffffff);
-    color: var(--tab-text-active, #333333);
+    background-color: var(--tab-bg-active, #ffffff) !important;
+    color: var(--tab-text-active, #333333) !important;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
@@ -257,7 +450,16 @@
 {
   "name": "t:general.brand_switcher",
   "class": "brand-switcher-section",
+  "enabled_on": {
+    "groups": ["header"]
+  },
   "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
     {
       "type": "select",
       "id": "style",
@@ -341,14 +543,14 @@
         {
           "type": "brand_tab",
           "settings": {
-            "title": "Code to Couture",
+            "title": "Brand 1",
             "is_active": true
           }
         },
         {
           "type": "brand_tab",
           "settings": {
-            "title": "C2C : PRET"
+            "title": "Brand 2"
           }
         }
       ]

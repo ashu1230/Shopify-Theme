@@ -1,6 +1,6 @@
 {%- assign collection = collections[section.settings.collection] -%}
 
-<div id="FeaturedCollection-{{ section.id }}" class="featured-collection section-{{ section.id }} {% if section.settings.remove_padding_top %}featured-collection--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}featured-collection--no-padding-bottom{% endif %}">
+<div id="FeaturedCollection-{{ section.id }}" class="featured-collection section-{{ section.id }} color-{{ section.settings.color_scheme }} gradient {% if section.settings.remove_padding_top %}featured-collection--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}featured-collection--no-padding-bottom{% endif %}">
   <div class="page-width">
     {%- if section.settings.title != blank or section.settings.subtitle != blank -%}
       <div class="featured-collection__header">
@@ -699,7 +699,16 @@
 {
   "name": "Featured Collection",
   "class": "featured-collection-section",
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
   "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    },
     {
       "type": "text",
       "id": "title",

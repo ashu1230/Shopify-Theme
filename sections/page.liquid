@@ -5,13 +5,25 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/page
 {% endcomment %}
 
-<h1>{{ page.title }}</h1>
+<div class="page-section color-{{ section.settings.color_scheme }} gradient">
+  <h1>{{ page.title }}</h1>
 
-{{ page.content }}
+  {{ page.content }}
+</div>
 
 {% schema %}
 {
   "name": "t:general.page",
-  "settings": []
+  "disabled_on": {
+    "groups": ["header", "footer"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:labels.color_scheme",
+      "default": "scheme-1"
+    }
+  ]
 }
 {% endschema %}

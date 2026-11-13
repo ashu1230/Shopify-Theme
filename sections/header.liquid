@@ -1,21 +1,138 @@
-<header class="header">
-  {%- comment -%} Top row: Logo centered, icons on right {%- endcomment -%}
-  <div class="header__top">
-    <div class="header__top-left">
-      {%- comment -%} Empty spacer to keep logo centered {%- endcomment -%}
-    </div>
+{%- assign current_brand = 'primary' -%}
+{%- if template.suffix != blank -%}
+  {%- assign current_brand = 'secondary' -%}
+{%- elsif request.path contains 'pret' or request.path contains 'secondary' -%}
+  {%- assign current_brand = 'secondary' -%}
+{%- endif -%}
 
+{%- assign show_header = true -%}
+{%- if section.settings.brand_visibility == 'primary' or section.settings.brand_visibility == 'couture' -%}
+  {%- if current_brand == 'secondary' or current_brand == 'pret' -%}
+    {%- assign show_header = false -%}
+  {%- endif -%}
+{%- elsif section.settings.brand_visibility == 'secondary' or section.settings.brand_visibility == 'pret' -%}
+  {%- if current_brand != 'secondary' and current_brand != 'pret' -%}
+    {%- assign show_header = false -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- assign is_secondary = false -%}
+{%- if current_brand == 'secondary' or current_brand == 'pret' -%}
+  {%- if section.settings.enable_pret_overrides -%}
+    {%- assign is_secondary = true -%}
+  {%- endif -%}
+{%- endif -%}
+
+{%- assign active_header_color_scheme = section.settings.color_scheme -%}
+{%- if is_secondary and section.settings.pret_color_scheme != blank -%}
+  {%- assign active_header_color_scheme = section.settings.pret_color_scheme -%}
+{%- endif -%}
+
+{%- assign active_menu = section.settings.menu -%}
+{%- if is_secondary and section.settings.pret_menu != blank -%}
+  {%- assign active_menu = section.settings.pret_menu -%}
+{%- endif -%}
+
+{%- assign active_logo = section.settings.logo -%}
+{%- assign active_logo_width = section.settings.logo_width -%}
+{%- if is_secondary and section.settings.pret_logo != blank -%}
+  {%- assign active_logo = section.settings.pret_logo -%}
+  {%- assign active_logo_width = section.settings.pret_logo_width | default: section.settings.logo_width -%}
+{%- endif -%}
+
+{%- assign active_topbar_extra_text = section.settings.topbar_extra_item_text -%}
+{%- assign active_topbar_extra_link = section.settings.topbar_extra_item_link -%}
+{%- if is_secondary and section.settings.pret_topbar_extra_text != blank -%}
+  {%- assign active_topbar_extra_text = section.settings.pret_topbar_extra_text -%}
+  {%- assign active_topbar_extra_link = section.settings.pret_topbar_extra_link | default: section.settings.topbar_extra_item_link -%}
+{%- endif -%}
+
+{%- comment -%} Top bar information blocks {%- endcomment -%}
+
+<div id="header-sticky-placeholder-{{ section.id }}" class="header-sticky-placeholder" style="display:none;" aria-hidden="true"></div>
+<div
+  id="shopify-section-header-wrap-{{ section.id }}"
+  class="header-section-wrap"
+  data-sticky-enabled="{{ section.settings.enable_sticky_header }}"
+  data-sticky-type="{{ section.settings.sticky_header_type }}"
+  data-scroll-effect="{{ section.settings.enable_scroll_effect }}"
+  {% unless show_header %}style="display:none;"{% endunless %}
+>
+{%- if section.settings.enable_topbar -%}
+  <div class="header-topbar color-{{ active_header_color_scheme }} gradient header-topbar--height-{{ section.settings.topbar_height }} header-topbar--font-{{ section.settings.topbar_font }} header-topbar--size-{{ section.settings.topbar_font_size }}">
+    <div class="header-topbar__inner page-width">
+      <div class="header-topbar__spacer"></div>
+      <div class="header-topbar__items header-topbar__items--style-{{ section.settings.topbar_display_style }}" style="--topbar-gap: {{ section.settings.topbar_item_spacing }}px;">
+        {%- for block in section.blocks -%}
+          {%- if block.type == "topbar_info" -%}
+            {%- assign block_brand = block.settings.brand_target | default: 'all' -%}
+            <div class="header-topbar__item{% if forloop.first %} is-active{% endif %}" {{ block.shopify_attributes }} data-brand-target="{{ block_brand }}">
+              {%- if block.settings.icon != blank -%}
+                <span class="header-topbar__icon" aria-hidden="true">{{ block.settings.icon }}</span>
+              {%- endif -%}
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}" class="header-topbar__text">{{ block.settings.text }}</a>
+              {%- elsif block.settings.text != blank -%}
+                <span class="header-topbar__text">{{ block.settings.text }}</span>
+              {%- endif -%}
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      <div class="header-topbar__extra">
+        {%- if active_topbar_extra_text != blank -%}
+          {%- if active_topbar_extra_link != blank -%}
+            <a href="{{ active_topbar_extra_link }}" class="header-topbar__extra-link">
+          {%- else -%}
+            <span class="header-topbar__extra-link">
+          {%- endif -%}
+            {%- if section.settings.topbar_extra_item_icon != 'none' -%}
+              <span class="header-topbar__extra-icon" aria-hidden="true">
+                {%- case section.settings.topbar_extra_item_icon -%}
+                  {%- when 'chat' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  {%- when 'phone' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  {%- when 'help' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                  {%- when 'email' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  {%- when 'user' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  {%- when 'truck' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                  {%- when 'star' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  {%- when 'heart' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  {%- when 'check' -%}
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                {%- endcase -%}
+              </span>
+            {%- endif -%}
+            <span class="header-topbar__extra-text">{{ active_topbar_extra_text }}</span>
+          {%- if active_topbar_extra_link != blank -%}</a>{%- else -%}</span>{%- endif -%}
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+<header
+  id="header-{{ section.id }}"
+  class="header color-{{ active_header_color_scheme }} gradient{% if section.settings.enable_sticky_header and section.settings.sticky_header_type == 'sticky_menu' %} header--sticky_menu{% endif %}"
+  data-brand-visibility="{{ section.settings.brand_visibility | default: 'all' }}"
+  data-couture-scheme="{{ section.settings.color_scheme }}"
+  data-pret-scheme="{{ section.settings.pret_color_scheme | default: section.settings.color_scheme }}"
+  data-desktop-clickable="{{ section.settings.menu_parent_clickable_desktop }}"
+  data-mobile-clickable="{{ section.settings.menu_parent_clickable_mobile }}"
+>
+  <div class="header__top page-width">
+    <div class="header__top-left"></div>
     <div class="header__logo">
-      {%- if section.settings.logo != blank -%}
+      {%- if active_logo != blank -%}
         <a href="{{ routes.root_url }}" class="header__logo-link">
-          <img
-            src="{{ section.settings.logo | image_url: width: 300 }}"
-            alt="{{ shop.name }}"
-            class="header__logo-image"
-            width="{{ section.settings.logo_width }}"
-            height="auto"
-            loading="eager"
-          >
+          <img src="{{ active_logo | image_url: width: 300 }}" alt="{{ shop.name }}" class="header__logo-image" width="{{ active_logo_width }}" height="auto" loading="eager">
         </a>
       {%- else -%}
         <a href="{{ routes.root_url }}" class="header__logo-link header__logo-text">
@@ -23,437 +140,554 @@
         </a>
       {%- endif -%}
     </div>
-
     <div class="header__icons">
-      {% if shop.customer_accounts_enabled %}
-        <shopify-account menu="{{ section.settings.customer_account_menu }}">
-          {{ 'icon-account.svg' | inline_asset_content }}
-        </shopify-account>
-      {% endif %}
-
-      <a href="{{ routes.search_url }}" class="header__icon" aria-label="{{ 'search.title' | t }}">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <circle cx="11" cy="11" r="7.5" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </a>
-
-      <a href="{{ routes.cart_url }}" class="header__icon" aria-label="{{ 'cart.title' | t }}">
-        {% if cart.item_count > 0 %}
-          <span class="header__cart-count">{{ cart.item_count }}</span>
-        {% endif %}
-        {{ 'icon-cart.svg' | inline_asset_content }}
-      </a>
+      {%- for block in section.blocks -%}
+        {%- if block.type == "social_links" -%}
+          {%- assign block_brand = block.settings.brand_target | default: 'all' -%}
+          <div class="header__social" {{ block.shopify_attributes }} data-brand-target="{{ block_brand }}">
+            {%- if block.settings.instagram != blank -%}<a href="{{ block.settings.instagram }}" class="header__social-link" aria-label="Instagram" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="20" height="20" rx="5" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg></a>{%- endif -%}
+            {%- if block.settings.tiktok != blank -%}<a href="{{ block.settings.tiktok }}" class="header__social-link" aria-label="TikTok" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.77 0 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.34 6.34 0 0 0-6.34 6.29 6.34 6.34 0 0 0 12.68 0V8.69a8.18 8.18 0 0 0 4.78 1.52V6.75a4.85 4.85 0 0 1-1.01-.06z" fill="currentColor"/></svg></a>{%- endif -%}
+            {%- if block.settings.facebook != blank -%}<a href="{{ block.settings.facebook }}" class="header__social-link" aria-label="Facebook" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></a>{%- endif -%}
+            {%- if block.settings.pinterest != blank -%}<a href="{{ block.settings.pinterest }}" class="header__social-link" aria-label="Pinterest" target="_blank" rel="noopener"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12c0 4.24 2.65 7.86 6.39 9.29-.09-.78-.17-1.98.04-2.83l1.22-5.17s-.31-.62-.31-1.55c0-1.45.84-2.53 1.89-2.53.89 0 1.32.67 1.32 1.47 0 .9-.57 2.24-.87 3.48-.25 1.04.52 1.88 1.54 1.88 1.84 0 3.08-2.35 3.08-5.13 0-2.12-1.43-3.7-4.02-3.7-2.93 0-4.76 2.19-4.76 4.64 0 .84.24 1.43.62 1.89.13.51-.18.74-.44.23-1.24-.51-1.82-1.88-1.82-3.42 0-2.54 2.15-5.61 6.43-5.61 3.44 0 5.71 2.49 5.71 5.17 0 3.55-1.96 6.21-4.84 6.21-.97 0-1.87-.52-2.18-1.11l-.61 2.35c-.22.85-.82 1.92-1.22 2.57.92.28 1.89.43 2.9.43 5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="currentColor"/></svg></a>{%- endif -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+      {% if shop.customer_accounts_enabled %}<shopify-account menu="{{ section.settings.customer_account_menu }}">{{ "icon-account.svg" | inline_asset_content }}</shopify-account>{% endif %}
+      <a href="{{ routes.search_url }}" class="header__icon" aria-label="{{ "search.title" | t }}"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="11" cy="11" r="7.5" stroke="currentColor" stroke-width="1.5"/><path d="M16.5 16.5L21 21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+      <a href="{{ routes.cart_url }}" class="header__icon" aria-label="{{ "cart.title" | t }}">{% if cart.item_count > 0 %}<span class="header__cart-count">{{ cart.item_count }}</span>{% endif %}{{ "icon-cart.svg" | inline_asset_content }}</a>
     </div>
   </div>
 
-  {%- comment -%} Bottom row: Navigation menu with mega menu {%- endcomment -%}
-  {%- if section.settings.menu != blank -%}
+  {%- if active_menu != blank -%}
+    <div id="header-nav-placeholder-{{ section.id }}" class="header-nav-placeholder" style="display:none;" aria-hidden="true"></div>
     <nav class="header__nav" aria-label="Main navigation">
-      <div class="header__nav-left">
-        <!-- Brand Switcher (will be teleported here if not full width) -->
-      </div>
-      <div class="header__nav-center">
-        <ul class="header__nav-list">
-          {% for link in section.settings.menu.links %}
-            <li class="header__nav-item{% if link.links.size > 0 %} has-mega-menu{% endif %}">
-              <a
-                href="{{ link.url }}"
-                class="header__nav-link{% if link.active %} is-active{% endif %}"
-                {% if link.links.size > 0 %}
-                  aria-expanded="false"
-                  aria-controls="mega-menu-{{ forloop.index }}"
-                {% endif %}
-              >
-                {{ link.title }}
-                {%- if link.links.size > 0 -%}
-                  <svg class="header__nav-chevron" width="8" height="8" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                    <path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                {%- endif -%}
-              </a>
-
-              {%- if link.links.size > 0 -%}
-                <div class="mega-menu" id="mega-menu-{{ forloop.index }}" aria-label="{{ link.title }}">
-                  <div class="mega-menu__inner">
-                    {%- for child_link in link.links -%}
-                      <div class="mega-menu__column">
-                        <a href="{{ child_link.url }}" class="mega-menu__heading">
-                          {{ child_link.title }}
-                        </a>
-
-                        {%- if child_link.links.size > 0 -%}
-                          <ul class="mega-menu__list">
-                            {%- for grandchild_link in child_link.links -%}
-                              <li>
-                                <a href="{{ grandchild_link.url }}" class="mega-menu__link">
-                                  {{ grandchild_link.title }}
-                                </a>
-                              </li>
-                            {%- endfor -%}
-                          </ul>
-                        {%- endif -%}
-                      </div>
-                    {%- endfor -%}
-                  </div>
+      <div class="header__nav-inner page-width">
+        <div class="header__nav-left">
+          {%- for block in section.blocks -%}
+            {%- if block.type == "menu_button" -%}
+              {%- assign block_brand = block.settings.brand_target | default: 'all' -%}
+              {%- if block_brand == 'all' or block_brand == current_brand -%}
+                <div class="header__menu-button" {{ block.shopify_attributes }} data-brand-target="{{ block_brand }}">
+                  {%- if block.settings.button_menu != blank -%}
+                    <div class="header__button-nav">
+                      {%- for btn_link in block.settings.button_menu.links -%}
+                        <a href="{{ btn_link.url }}" class="header__button-nav-link{% if btn_link.active %} is-active{% endif %}">{{ btn_link.title }}</a>
+                      {%- endfor -%}
+                    </div>
+                  {%- endif -%}
                 </div>
               {%- endif -%}
-            </li>
-          {% endfor %}
-        </ul>
-      </div>
-      <div class="header__nav-right">
-        <!-- Balance spacer for centering -->
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+        {%- assign menu_alignment = section.settings.menu_items_alignment | default: 'center' -%}
+        {%- assign enable_scroll = false -%}
+        {%- if menu_alignment == 'left' and section.settings.enable_scroll_effect -%}
+          {%- assign enable_scroll = true -%}
+        {%- endif -%}
+
+        <div class="header__nav-center header__nav-center--align-{{ menu_alignment }}{% if enable_scroll %} header__nav-center--scrollable{% endif %}">
+          <ul class="header__nav-list header__nav-list--align-{{ menu_alignment }}{% if enable_scroll %} header__nav-list--scroll-effect{% endif %}">
+            {% for link in active_menu.links %}
+              {%- assign link_handle = link.title | handleize -%}
+              {%- assign matching_promo = nil -%}
+              {%- for block in section.blocks -%}
+                {%- if block.type == "menu_promo" and block.settings.menu_item == link_handle -%}
+                  {%- assign block_brand = block.settings.brand_target | default: 'all' -%}
+                  {%- assign promo_match = false -%}
+                  {%- if block_brand == 'all' -%}
+                    {%- assign promo_match = true -%}
+                  {%- elsif block_brand == current_brand -%}
+                    {%- assign promo_match = true -%}
+                  {%- elsif current_brand == 'secondary' and block_brand == 'pret' -%}
+                    {%- assign promo_match = true -%}
+                  {%- elsif current_brand == 'secondary' and block_brand == 'secondary' -%}
+                    {%- assign promo_match = true -%}
+                  {%- elsif current_brand == 'primary' and block_brand == 'couture' -%}
+                    {%- assign promo_match = true -%}
+                  {%- elsif current_brand == 'primary' and block_brand == 'primary' -%}
+                    {%- assign promo_match = true -%}
+                  {%- endif -%}
+                  {%- if promo_match -%}
+                    {%- assign matching_promo = block -%}
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+              {%- assign has_dropdown = false -%}
+              {%- if link.links.size > 0 or matching_promo != nil -%}
+                {%- assign has_dropdown = true -%}
+              {%- endif -%}
+              {%- assign link_href = link.url -%}
+              {%- if has_dropdown and section.settings.menu_parent_clickable_desktop == false -%}
+                {%- assign link_href = 'javascript:void(0);' -%}
+              {%- endif -%}
+              <li class="header__nav-item{% if has_dropdown %} has-mega-menu{% endif %}">
+                <a href="{{ link_href }}" class="header__nav-link{% if link.active %} is-active{% endif %}"{% if has_dropdown %} aria-expanded="false" aria-controls="mega-menu-{{ forloop.index }}"{% endif %}>
+                  {{ link.title }}
+                  {%- if has_dropdown -%}<svg class="header__nav-chevron" width="8" height="8" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5L6 8L9.5 4.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>{%- endif -%}
+                </a>
+                {%- if has_dropdown -%}
+                  <div class="mega-menu{% if matching_promo != nil %} mega-menu--has-promo mega-menu--layout-{{ matching_promo.settings.banner_layout }}{% endif %}" id="mega-menu-{{ forloop.index }}" aria-label="{{ link.title }}">
+                    <div class="mega-menu__inner page-width">
+                      {%- if link.links.size > 0 -%}
+                        <div class="mega-menu__links">
+                          {%- for child_link in link.links -%}
+                            <div class="mega-menu__column">
+                              <a href="{{ child_link.url }}" class="mega-menu__heading">{{ child_link.title }}</a>
+                              {%- if child_link.links.size > 0 -%}
+                                <ul class="mega-menu__list">
+                                  {%- for grandchild_link in child_link.links -%}<li><a href="{{ grandchild_link.url }}" class="mega-menu__link">{{ grandchild_link.title }}</a></li>{%- endfor -%}
+                                </ul>
+                              {%- endif -%}
+                            </div>
+                          {%- endfor -%}
+                        </div>
+                      {%- endif -%}
+                      {%- if matching_promo != nil -%}
+                        {%- assign promo = matching_promo -%}
+                        <div class="mega-menu__promo color-{{ promo.settings.color_scheme }} gradient" {{ promo.shopify_attributes }}>
+                          {%- if promo.settings.enable_banner_1 -%}
+                            <div class="mega-menu__banner{% if promo.settings.zoom_on_hover %} zoom-on-hover{% endif %}" style="--bh:{{ promo.settings.banner_height }};">
+                              {%- if promo.settings.image_1 != blank -%}<div class="mega-menu__banner-media"><img src="{{ promo.settings.image_1 | image_url: width: 600 }}" alt="{{ promo.settings.image_1.alt | default: link.title }}" width="600" height="auto" loading="lazy" class="mega-menu__banner-img" style="opacity:{{ promo.settings.image_overlay_opacity | divided_by: 100.0 }};"></div>{%- endif -%}
+                              {%- assign has_content_1 = false -%}
+                              {%- if promo.settings.caption_1 != blank or promo.settings.link_1 != blank -%}
+                                {%- assign has_content_1 = true -%}
+                              {%- endif -%}
+                              {%- if promo.settings.show_content_below and has_content_1 -%}
+                                <div class="mega-menu__banner-content">{%- if promo.settings.caption_1 != blank -%}<p class="mega-menu__banner-caption">{{ promo.settings.caption_1 }}</p>{%- endif -%}{%- if promo.settings.link_1 != blank -%}<a href="{{ promo.settings.link_1 }}" class="mega-menu__banner-link">{{ promo.settings.link_label_1 | default: "Shop now" }}</a>{%- endif -%}</div>
+                              {%- elsif promo.settings.image_1 != blank -%}
+                                <a href="{{ promo.settings.link_1 | default: "#" }}" class="mega-menu__banner-overlay-link" aria-label="{{ promo.settings.caption_1 | default: link.title }}"></a>
+                              {%- endif -%}
+                            </div>
+                          {%- endif -%}
+                          {%- if promo.settings.enable_banner_2 -%}
+                            <div class="mega-menu__banner{% if promo.settings.zoom_on_hover %} zoom-on-hover{% endif %}" style="--bh:{{ promo.settings.banner_height }};">
+                              {%- if promo.settings.image_2 != blank -%}<div class="mega-menu__banner-media"><img src="{{ promo.settings.image_2 | image_url: width: 600 }}" alt="{{ promo.settings.image_2.alt | default: link.title }}" width="600" height="auto" loading="lazy" class="mega-menu__banner-img" style="opacity:{{ promo.settings.image_overlay_opacity | divided_by: 100.0 }};"></div>{%- endif -%}
+                              {%- assign has_content_2 = false -%}
+                              {%- if promo.settings.caption_2 != blank or promo.settings.link_2 != blank -%}
+                                {%- assign has_content_2 = true -%}
+                              {%- endif -%}
+                              {%- if promo.settings.show_content_below and has_content_2 -%}
+                                <div class="mega-menu__banner-content">{%- if promo.settings.caption_2 != blank -%}<p class="mega-menu__banner-caption">{{ promo.settings.caption_2 }}</p>{%- endif -%}{%- if promo.settings.link_2 != blank -%}<a href="{{ promo.settings.link_2 }}" class="mega-menu__banner-link">{{ promo.settings.link_label_2 | default: "Shop now" }}</a>{%- endif -%}</div>
+                              {%- elsif promo.settings.image_2 != blank -%}
+                                <a href="{{ promo.settings.link_2 | default: "#" }}" class="mega-menu__banner-overlay-link" aria-label="{{ promo.settings.caption_2 | default: link.title }}"></a>
+                              {%- endif -%}
+                            </div>
+                          {%- endif -%}
+                        </div>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                {%- endif -%}
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="header__nav-right"></div>
       </div>
     </nav>
   {%- endif -%}
 </header>
+</div>{{- '<!-- /header-section-wrap -->' -}}
 
 <script>
   (function() {
     function initHeaderSwitcher() {
-      const switcher = document.querySelector('.brand-switcher');
-      const dest = document.querySelector('.header__top-left');
-      if (switcher && dest) {
-        if (!switcher.classList.contains('brand-switcher--full-width')) {
-          const existing = dest.querySelectorAll('.brand-switcher');
-          existing.forEach(el => {
-            if (el !== switcher) el.remove();
-          });
-          
-          if (!dest.contains(switcher)) {
-            dest.appendChild(switcher);
+      var switcher = document.querySelector(".brand-switcher");
+      var dest = document.querySelector(".header__nav-left");
+      if (switcher && dest && !switcher.classList.contains("brand-switcher--full-width")) {
+        dest.querySelectorAll(".brand-switcher").forEach(function(el) { if (el !== switcher) el.remove(); });
+        if (!dest.contains(switcher)) dest.appendChild(switcher);
+      }
+    }
+    function initTopbarCarousel() {
+      var carousel = document.querySelector(".header-topbar__items--style-carousel");
+      if (!carousel) return;
+      var items = carousel.querySelectorAll(".header-topbar__item");
+      if (items.length <= 1) {
+        if (items[0]) items[0].classList.add("is-active");
+        return;
+      }
+      var activeIdx = 0;
+      items.forEach(function(item, idx) {
+        item.classList.toggle("is-active", idx === 0);
+      });
+      if (carousel._interval) clearInterval(carousel._interval);
+      carousel._interval = setInterval(function() {
+        items[activeIdx].classList.remove("is-active");
+        activeIdx = (activeIdx + 1) % items.length;
+        items[activeIdx].classList.add("is-active");
+      }, 4000);
+    }
+    function initStickyHeader() {
+      var wrap = document.getElementById('shopify-section-header-wrap-{{ section.id }}');
+      var header = document.getElementById('header-{{ section.id }}');
+      if (!wrap || !header) return;
+
+      var nav = header.querySelector('.header__nav');
+      var wrapPlaceholder = document.getElementById('header-sticky-placeholder-{{ section.id }}');
+      var navPlaceholder = document.getElementById('header-nav-placeholder-{{ section.id }}');
+
+      var isStickyEnabled = wrap.getAttribute('data-sticky-enabled') === 'true';
+      var stickyType = wrap.getAttribute('data-sticky-type') || 'sticky_menu';
+      var scrollEffect = wrap.getAttribute('data-scroll-effect') === 'true';
+
+      // Reset any active sticky state first
+      wrap.classList.remove('is-sticky-fixed');
+      if (wrapPlaceholder) {
+        wrapPlaceholder.style.display = 'none';
+        wrapPlaceholder.style.height = '0px';
+      }
+      if (nav) nav.classList.remove('is-nav-sticky-fixed');
+      if (navPlaceholder) {
+        navPlaceholder.style.display = 'none';
+        navPlaceholder.style.height = '0px';
+      }
+
+      if (!isStickyEnabled) return;
+
+      // Note: Sticky menu is only applicable when 'Enable scroll effect' is disabled
+      if (stickyType === 'sticky_menu' && scrollEffect) return;
+
+      function onScroll() {
+        var scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (stickyType === 'sticky_header') {
+          var origTop = 0;
+          if (wrap.classList.contains('is-sticky-fixed')) {
+            origTop = wrapPlaceholder ? (wrapPlaceholder.getBoundingClientRect().top + scrollY) : 0;
+          } else {
+            origTop = wrap.getBoundingClientRect().top + scrollY;
+          }
+
+          if (scrollY > origTop) {
+            if (!wrap.classList.contains('is-sticky-fixed')) {
+              var h = wrap.offsetHeight;
+              if (wrapPlaceholder) {
+                wrapPlaceholder.style.height = h + 'px';
+                wrapPlaceholder.style.display = 'block';
+              }
+              wrap.classList.add('is-sticky-fixed');
+            }
+          } else {
+            if (wrap.classList.contains('is-sticky-fixed')) {
+              wrap.classList.remove('is-sticky-fixed');
+              if (wrapPlaceholder) {
+                wrapPlaceholder.style.display = 'none';
+                wrapPlaceholder.style.height = '0px';
+              }
+            }
+          }
+        } else if (stickyType === 'sticky_menu' && nav) {
+          var origTop = 0;
+          if (nav.classList.contains('is-nav-sticky-fixed')) {
+            origTop = navPlaceholder ? (navPlaceholder.getBoundingClientRect().top + scrollY) : 0;
+          } else {
+            origTop = nav.getBoundingClientRect().top + scrollY;
+          }
+
+          if (scrollY > origTop) {
+            if (!nav.classList.contains('is-nav-sticky-fixed')) {
+              var h = nav.offsetHeight;
+              if (navPlaceholder) {
+                navPlaceholder.style.height = h + 'px';
+                navPlaceholder.style.display = 'block';
+              }
+              nav.classList.add('is-nav-sticky-fixed');
+            }
+          } else {
+            if (nav.classList.contains('is-nav-sticky-fixed')) {
+              nav.classList.remove('is-nav-sticky-fixed');
+              if (navPlaceholder) {
+                navPlaceholder.style.display = 'none';
+                navPlaceholder.style.height = '0px';
+              }
+            }
           }
         }
       }
+
+      if (window._headerScrollHandler) {
+        window.removeEventListener('scroll', window._headerScrollHandler);
+        window.removeEventListener('resize', window._headerResizeHandler);
+      }
+      window._headerScrollHandler = onScroll;
+      window._headerResizeHandler = function() {
+        if (wrap.classList.contains('is-sticky-fixed') && wrapPlaceholder) {
+          wrapPlaceholder.style.height = wrap.offsetHeight + 'px';
+        }
+        if (nav && nav.classList.contains('is-nav-sticky-fixed') && navPlaceholder) {
+          navPlaceholder.style.height = nav.offsetHeight + 'px';
+        }
+      };
+      window.addEventListener('scroll', onScroll, { passive: true });
+      window.addEventListener('resize', window._headerResizeHandler, { passive: true });
+      onScroll();
+    }
+    function initMenuClickHandlers() {
+      var header = document.querySelector(".header");
+      if (!header) return;
+      var isDesktopClickable = header.getAttribute("data-desktop-clickable") !== "false";
+      var isMobileClickable = header.getAttribute("data-mobile-clickable") === "true";
+
+      var navItems = header.querySelectorAll(".header__nav-item.has-mega-menu");
+      navItems.forEach(function(item) {
+        var link = item.querySelector(".header__nav-link");
+        if (!link) return;
+
+        link.addEventListener("click", function(e) {
+          var isMobile = window.innerWidth <= 768;
+          if (isMobile) {
+            if (!isMobileClickable) {
+              e.preventDefault();
+              item.classList.toggle("is-open-mobile");
+            }
+          } else {
+            if (!isDesktopClickable) {
+              e.preventDefault();
+            }
+          }
+        });
+      });
     }
 
     initHeaderSwitcher();
+    initTopbarCarousel();
+    initStickyHeader();
+    initMenuClickHandlers();
 
-    document.addEventListener('shopify:section:load', function(e) {
-      if (e.target.classList.contains('brand-switcher-section')) {
-        initHeaderSwitcher();
-      }
+    document.addEventListener("shopify:section:load", function(e) {
+      if (e.target.classList.contains("brand-switcher-section")) initHeaderSwitcher();
+      initTopbarCarousel();
+      initStickyHeader();
+      initMenuClickHandlers();
     });
+
+    function onBrandChanged(e) {
+      initHeaderSwitcher();
+      initTopbarCarousel();
+      initStickyHeader();
+
+      var brand = e.detail && (e.detail.brand || e.detail.handle || '');
+      var header = document.querySelector(".header");
+      if (header) {
+        var isSec = (brand.indexOf('secondary') !== -1 || brand.indexOf('pret') !== -1);
+        var coutureScheme = header.getAttribute('data-couture-scheme');
+        var pretScheme = header.getAttribute('data-pret-scheme');
+        if (isSec && pretScheme) {
+          header.classList.remove('color-' + coutureScheme);
+          header.classList.add('color-' + pretScheme);
+        } else if (!isSec && coutureScheme) {
+          header.classList.remove('color-' + pretScheme);
+          header.classList.add('color-' + coutureScheme);
+        }
+      }
+    }
+    window.addEventListener("theme:brand:change", onBrandChanged);
+    window.addEventListener("brand:change", onBrandChanged);
   })();
 </script>
 
 {% stylesheet %}
-  /* ===== Header Layout ===== */
-  .header {
-    display: flex;
-    flex-direction: column;
+  .header-topbar { border-bottom: 1px solid rgba(0,0,0,.08); }
+  /* Brand visibility rules */
+  html[data-active-brand="secondary"] [data-brand-visibility="primary"],
+  html[data-active-brand="secondary"] [data-brand-visibility="couture"],
+  html[data-active-brand="pret"] [data-brand-visibility="primary"],
+  html[data-active-brand="pret"] [data-brand-visibility="couture"] { display: none !important; }
+
+  html[data-active-brand="primary"] [data-brand-visibility="secondary"],
+  html[data-active-brand="primary"] [data-brand-visibility="pret"],
+  html[data-active-brand="couture"] [data-brand-visibility="secondary"],
+  html[data-active-brand="couture"] [data-brand-visibility="pret"] { display: none !important; }
+
+  html[data-active-brand="secondary"] [data-brand-target="primary"],
+  html[data-active-brand="secondary"] [data-brand-target="couture"],
+  html[data-active-brand="pret"] [data-brand-target="primary"],
+  html[data-active-brand="pret"] [data-brand-target="couture"] { display: none !important; }
+
+  html[data-active-brand="primary"] [data-brand-target="secondary"],
+  html[data-active-brand="primary"] [data-brand-target="pret"],
+  html[data-active-brand="couture"] [data-brand-target="secondary"],
+  html[data-active-brand="couture"] [data-brand-target="pret"] { display: none !important; }
+  .header-topbar__inner { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; }
+  .header-topbar--height-extra_small .header-topbar__inner { padding:.25rem 0; min-height:28px; }
+  .header-topbar--height-small .header-topbar__inner { padding:.375rem 0; min-height:34px; }
+  .header-topbar--height-medium .header-topbar__inner { padding:.625rem 0; min-height:42px; }
+  .header-topbar--height-large .header-topbar__inner { padding:.875rem 0; min-height:50px; }
+  .header-topbar--font-primary { font-family:inherit; }
+  .header-topbar--font-secondary { font-family:var(--font-heading-family, inherit); letter-spacing:.05em; text-transform:uppercase; }
+  .header-topbar--size-small { font-size:.6875rem; }
+  .header-topbar--size-medium { font-size:.75rem; }
+  .header-topbar--size-large { font-size:.875rem; }
+  .header-topbar__spacer { display:block; }
+  .header-topbar__items { display:flex; align-items:center; justify-content:center; gap:var(--topbar-gap, 24px); flex-wrap:wrap; }
+  .header-topbar__item { display:inline-flex; align-items:center; gap:.375rem; }
+  .header-topbar__icon { font-size:1rem; line-height:1; }
+  .header-topbar__text,.header-topbar__text:visited { color:var(--color-foreground); text-decoration:none; }
+  a.header-topbar__text:hover { text-decoration:underline; }
+  .header-topbar__extra { display:flex; justify-content:flex-end; align-items:center; }
+  .header-topbar__extra-link { display:inline-flex; align-items:center; gap:.375rem; color:var(--color-foreground); text-decoration:none; transition:opacity .2s ease; font-size:inherit; }
+  a.header-topbar__extra-link:hover { opacity:.75; }
+  .header-topbar__extra-icon { display:inline-flex; align-items:center; justify-content:center; color:var(--color-button, var(--color-foreground)); }
+  .header-topbar__items--style-carousel .header-topbar__item { display:none; }
+  .header-topbar__items--style-carousel .header-topbar__item.is-active { display:inline-flex; }
+  /* ===== Sticky Header & Sticky Menu ===== */
+  .header-section-wrap {
     position: relative;
-    z-index: 100;
-  }
-
-  /* ----- Top Row: Logo + Icons ----- */
-  .header__top {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    padding: 1.25rem 0;
-    min-height: 4.5rem;
-  }
-
-  .header__top-left {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    padding-left: 0;
-  }
-
-  /* Logo */
-  .header__logo {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .header__logo-link {
-    text-decoration: none;
-    color: var(--color-foreground);
-    display: inline-flex;
-    align-items: center;
-  }
-
-  .header__logo-text {
-    font-size: 1.75rem;
-    font-weight: 400;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-  }
-
-  .header__logo-image {
-    max-height: 3rem;
-    width: auto;
-    object-fit: contain;
-  }
-
-  /* Icons */
-  .header__icons {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 1.25rem;
-    padding-right: 1.5rem;
-  }
-
-  .header__icons a,
-  .header__icons shopify-account {
-    position: relative;
-    text-decoration: none;
-    color: var(--color-foreground);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s ease;
-  }
-
-  .header__icons a:hover,
-  .header__icons shopify-account:hover {
-    opacity: 0.6;
-  }
-
-  .header__icons svg {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
-
-  .header__cart-count {
-    position: absolute;
-    top: -0.4rem;
-    right: -0.5rem;
-    background-color: var(--color-foreground);
-    color: var(--color-background);
-    font-size: 0.625rem;
-    font-weight: 600;
-    width: 1rem;
-    height: 1rem;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-  }
-
-  /* ----- Navigation Row ----- */
-  .header__nav {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
-    padding: 0.75rem 0;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    align-items: center;
-    width: 100%;
-  }
-
-  .header__nav-left {
-    display: flex;
-    justify-content: flex-start;
-    align-items: center;
-    padding-left: 1.5rem;
-  }
-
-  .header__nav-center {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .header__nav-right {
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-    padding-right: 1.5rem;
-  }
-
-  .header__nav-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.25rem 2rem;
-  }
-
-  .header__nav-item {
-    margin: 0;
-    position: relative;
-  }
-
-  .header__nav-link {
-    text-decoration: none;
-    color: var(--color-foreground);
-    font-size: 0.75rem;
-    font-weight: 500;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.25rem 0;
-    position: relative;
-    transition: color 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-  }
-
-  .header__nav-chevron {
-    transition: transform 0.3s ease;
-    opacity: 0.5;
-  }
-
-  .header__nav-item:hover .header__nav-chevron {
-    transform: rotate(180deg);
-    opacity: 1;
-  }
-
-  .header__nav-link::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 1px;
-    background-color: var(--color-foreground);
-    transition: width 0.3s ease;
-  }
-
-  .header__nav-link:hover::after,
-  .header__nav-link.is-active::after {
-    width: 100%;
-  }
-
-  /* ===== Mega Menu ===== */
-  .mega-menu {
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    min-width: 600px;
-    background-color: var(--color-background);
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
-    padding: 2rem 2.5rem;
-    opacity: 0;
-    visibility: hidden;
-    transform: translateX(-50%) translateY(10px);
-    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
     z-index: 200;
+  }
+  .header-sticky-placeholder,
+  .header-nav-placeholder {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    visibility: hidden;
     pointer-events: none;
   }
-
-  /* Show mega menu on hover */
-  .header__nav-item.has-mega-menu:hover .mega-menu {
-    opacity: 1;
-    visibility: visible;
-    transform: translateX(-50%) translateY(0);
-    pointer-events: auto;
+  /* Sticky Header mode: entire wrap (topbar + header) is fixed */
+  .header-section-wrap.is-sticky-fixed {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 500 !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    animation: headerStickySlideDown 0.25s ease;
   }
-
-  .mega-menu__inner {
-    display: flex;
-    gap: 2.5rem;
+  /* Sticky Menu mode: only nav bar is fixed */
+  .header__nav.is-nav-sticky-fixed {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 500 !important;
+    background-color: var(--color-background);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+    animation: headerStickySlideDown 0.25s ease;
   }
-
-  .mega-menu__column {
-    min-width: 140px;
+  @keyframes headerStickySlideDown {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
   }
+  .header { display:flex; flex-direction:column; z-index:100; }
+  .header__top { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:1.25rem 0; min-height:4.5rem; }
+  .header__top-left { display:flex; justify-content:flex-start; align-items:center; }
+  .header__logo { display:flex; justify-content:center; align-items:center; }
+  .header__logo-link { text-decoration:none; color:var(--color-foreground); display:inline-flex; align-items:center; }
+  .header__logo-text { font-size:1.75rem; font-weight:400; letter-spacing:.25em; text-transform:uppercase; }
+  .header__logo-image { max-height:3rem; width:auto; object-fit:contain; }
+  .header__icons { display:flex; align-items:center; justify-content:flex-end; gap:1.25rem; padding-right:1.5rem; }
+  .header__icons a,.header__icons shopify-account { position:relative; text-decoration:none; color:var(--color-foreground); display:flex; align-items:center; justify-content:center; transition:opacity .2s ease; }
+  .header__icons a:hover,.header__icons shopify-account:hover { opacity:.6; }
+  .header__icons svg { width:1.25rem; height:1.25rem; }
+  .header__cart-count { position:absolute; top:-.4rem; right:-.5rem; background-color:var(--color-foreground); color:var(--color-background); font-size:.625rem; font-weight:600; width:1rem; height:1rem; border-radius:50%; display:flex; align-items:center; justify-content:center; line-height:1; }
+  .header__social { display:flex; align-items:center; gap:.75rem; padding-right:.75rem; border-right:1px solid rgba(0,0,0,.12); margin-right:.25rem; }
+  .header__social-link { display:flex; align-items:center; justify-content:center; color:var(--color-foreground); text-decoration:none; transition:opacity .2s ease; }
+  .header__social-link:hover { opacity:.6; }
+  .header__nav { border-bottom:1px solid rgba(0,0,0,.1); position:relative; }
+  .header__nav-inner { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; padding:.625rem 0; }
+  .header__nav-left { display:flex; justify-content:flex-start; align-items:center; gap:.5rem; }
+  .header__nav-center { display:flex; justify-content:center; align-items:center; }
+  .header__nav-right { display:flex; justify-content:flex-end; align-items:center; }
+  .header__nav-list { list-style:none; padding:0; margin:0; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:.25rem 2rem; }
 
-  .mega-menu__heading {
-    display: block;
-    font-size: 0.8125rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--color-foreground);
-    text-decoration: none;
-    margin-bottom: 0.75rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-    transition: opacity 0.2s ease;
+  /* Navigation Alignment */
+  .header__nav-list--align-left { justify-content: flex-start; }
+  .header__nav-list--align-center { justify-content: center; }
+  .header__nav-list--align-right { justify-content: flex-end; }
+  .header__nav-list--align-divide_evenly { justify-content: space-evenly; width: 100%; }
+
+  .header__nav-center--align-left { justify-content: flex-start; flex: 1; }
+  .header__nav-center--align-center { justify-content: center; }
+  .header__nav-center--align-right { justify-content: flex-end; flex: 1; }
+  .header__nav-center--align-divide_evenly { width: 100%; flex: 1; }
+
+  /* Scroll effect when aligned to Left */
+  .header__nav-center--scrollable {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    -webkit-overflow-scrolling: touch;
+    mask-image: linear-gradient(to right, black calc(100% - 30px), transparent 100%);
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 30px), transparent 100%);
   }
-
-  .mega-menu__heading:hover {
-    opacity: 0.7;
+  .header__nav-center--scrollable::-webkit-scrollbar {
+    display: none;
   }
-
-  .mega-menu__list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
+  .header__nav-list--scroll-effect {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
   }
-
-  .mega-menu__link {
-    font-size: 0.8125rem;
-    font-weight: 400;
-    color: var(--color-foreground);
-    text-decoration: none;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-    display: block;
-    padding: 0.125rem 0;
+  .header__nav-list--scroll-effect .header__nav-item {
+    flex-shrink: 0;
   }
-
-  .mega-menu__link:hover {
-    opacity: 1;
-  }
-
-  /* ----- Responsive ----- */
-  @media (max-width: 768px) {
-    .header__top {
-      padding: 1rem 0;
-      min-height: 3.5rem;
-    }
-
-    .header__logo-text {
-      font-size: 1.25rem;
-      letter-spacing: 0.15em;
-    }
-
-    .header__icons {
-      gap: 0.75rem;
-    }
-
-    .header__nav {
-      grid-template-columns: 1fr;
-      gap: 0.75rem;
-      padding: 0.75rem 0;
-    }
-
-    .header__nav-left,
-    .header__nav-center,
-    .header__nav-right {
-      justify-content: center;
-      padding: 0;
-    }
-
-    .header__nav-list {
-      gap: 0.25rem 1rem;
-    }
-
-    .header__nav-link {
-      font-size: 0.6875rem;
-    }
-
-    .mega-menu {
-      min-width: 100vw;
-      left: 0;
-      transform: translateX(0) translateY(10px);
-      border-left: none;
-      border-right: none;
-    }
-
-    .header__nav-item.has-mega-menu:hover .mega-menu {
-      transform: translateX(0) translateY(0);
-    }
-
-    .mega-menu__inner {
-      flex-wrap: wrap;
-      gap: 1.5rem;
+  .header__nav-item { margin:0; position:relative; }
+  .header__nav-link { text-decoration:none; color:var(--color-foreground); font-size:.75rem; font-weight:500; letter-spacing:.1em; text-transform:uppercase; padding:.25rem 0; position:relative; transition:color .2s ease; display:inline-flex; align-items:center; gap:.25rem; }
+  .header__nav-chevron { transition:transform .3s ease; opacity:.5; }
+  .header__nav-item:hover .header__nav-chevron { transform:rotate(180deg); opacity:1; }
+  .header__nav-link::after { content:""; position:absolute; bottom:0; left:0; width:0; height:1px; background-color:var(--color-foreground); transition:width .3s ease; }
+  .header__nav-link:hover::after,.header__nav-link.is-active::after { width:100%; }
+  .header__button-nav { display:flex; align-items:center; gap:.5rem; }
+  .header__button-nav-link { font-size:.6875rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase; text-decoration:none; color:var(--color-foreground); padding:.3rem .75rem; border:1px solid rgba(0,0,0,.2); border-radius:2px; transition:background-color .2s ease,color .2s ease; }
+  .header__button-nav-link:hover,.header__button-nav-link.is-active { background-color:var(--color-foreground); color:var(--color-background); border-color:var(--color-foreground); }
+  .mega-menu { position:absolute; top:100%; left:50%; min-width:600px; max-width:100vw; background-color:var(--color-background); border:1px solid rgba(0,0,0,.1); box-shadow:0 8px 30px rgba(0,0,0,.08); padding:2rem 0; opacity:0; visibility:hidden; transform:translateX(-50%) translateY(10px); transition:opacity .3s ease,visibility .3s ease,transform .3s ease; z-index:200; pointer-events:none; }
+  .header__nav-item.has-mega-menu:hover .mega-menu { opacity:1; visibility:visible; transform:translateX(-50%) translateY(0); pointer-events:auto; }
+  .mega-menu__inner { display:flex; gap:3rem; align-items:flex-start; }
+  .mega-menu__links { display:flex; gap:2.5rem; flex:1; }
+  .mega-menu__column { min-width:140px; }
+  .mega-menu__heading { display:block; font-size:.8125rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:var(--color-foreground); text-decoration:none; margin-bottom:.75rem; padding-bottom:.5rem; border-bottom:1px solid rgba(0,0,0,.1); transition:opacity .2s ease; }
+  .mega-menu__heading:hover { opacity:.7; }
+  .mega-menu__list { list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:.5rem; }
+  .mega-menu__link { font-size:.8125rem; font-weight:400; color:var(--color-foreground); text-decoration:none; opacity:.7; transition:opacity .2s ease; display:block; padding:.125rem 0; }
+  .mega-menu__link:hover { opacity:1; }
+  .mega-menu--has-promo { min-width:820px; }
+  .mega-menu__promo { flex-shrink:0; display:flex; gap:.75rem; overflow:hidden; }
+  .mega-menu--layout-columns .mega-menu__promo { flex-direction:row; }
+  .mega-menu--layout-rows .mega-menu__promo { flex-direction:column; }
+  .mega-menu__banner { position:relative; width:220px; overflow:hidden; border-radius:4px; flex-shrink:0; }
+  .mega-menu--layout-rows .mega-menu__banner { width:100%; }
+  .mega-menu__banner[style*="--bh:1/1"] { aspect-ratio:1/1; }
+  .mega-menu__banner[style*="--bh:3/4"] { aspect-ratio:3/4; }
+  .mega-menu__banner[style*="--bh:4/3"] { aspect-ratio:4/3; }
+  .mega-menu__banner[style*="--bh:16/9"] { aspect-ratio:16/9; }
+  .mega-menu__banner-media { position:absolute; inset:0; width:100%; height:100%; }
+  .mega-menu__banner-img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .5s ease; }
+  .zoom-on-hover:hover .mega-menu__banner-img { transform:scale(1.05); }
+  .mega-menu__banner-overlay-link { position:absolute; inset:0; z-index:1; }
+  .mega-menu__banner-content { position:absolute; bottom:0; left:0; right:0; padding:1rem; background:linear-gradient(to top,rgba(0,0,0,.55) 0%,transparent 100%); color:#fff; z-index:2; }
+  .mega-menu__banner-caption { font-size:.875rem; font-weight:600; margin:0 0 .375rem; text-transform:uppercase; letter-spacing:.06em; }
+  .mega-menu__banner-link { font-size:.75rem; font-weight:500; letter-spacing:.08em; text-transform:uppercase; color:#fff; text-decoration:underline; text-underline-offset:3px; transition:opacity .2s ease; }
+  .mega-menu__banner-link:hover { opacity:.8; }
+  @media (max-width:768px) {
+    .header-topbar__inner { gap:1rem; padding:.5rem 1rem; justify-content:flex-start; overflow-x:auto; }
+    .header__top { padding:1rem 0; min-height:3.5rem; }
+    .header__logo-text { font-size:1.25rem; letter-spacing:.15em; }
+    .header__icons { gap:.75rem; }
+    .header__nav-inner { grid-template-columns:1fr; gap:.75rem; padding:.75rem 0; }
+    .header__nav-left,.header__nav-center,.header__nav-right { justify-content:center; padding:0; }
+    .header__nav-list { gap:.25rem 1rem; }
+    .header__nav-link { font-size:.6875rem; }
+    .mega-menu { min-width:100vw; left:0; transform:translateX(0) translateY(10px); border-left:none; border-right:none; }
+    .header__nav-item.has-mega-menu:hover .mega-menu { transform:translateX(0) translateY(0); }
+    .mega-menu__inner { flex-direction:column; gap:1.5rem; }
+    .mega-menu__links { flex-wrap:wrap; }
+    .mega-menu__promo { overflow-x:auto; }
+    .mega-menu__banner { width:160px; flex-shrink:0; }
+    .mega-menu--has-promo { min-width:100vw; }
+    .header__nav-item.is-open-mobile .mega-menu {
+      opacity: 1 !important;
+      visibility: visible !important;
+      transform: translateX(0) translateY(0) !important;
+      pointer-events: auto !important;
     }
   }
 {% endstylesheet %}
@@ -461,32 +695,280 @@
 {% schema %}
 {
   "name": "t:general.header",
+  "enabled_on": {
+    "groups": ["header"]
+  },
   "settings": [
     {
-      "type": "image_picker",
-      "id": "logo",
-      "label": "t:labels.logo"
+      "type": "select",
+      "id": "brand_visibility",
+      "label": "t:labels.brand_visibility",
+      "options": [
+        { "value": "all", "label": "t:options.brand_all" },
+        { "value": "primary", "label": "t:options.brand_primary" },
+        { "value": "secondary", "label": "t:options.brand_secondary" },
+        { "value": "couture", "label": "t:options.brand_couture" },
+        { "value": "pret", "label": "t:options.brand_pret" }
+      ],
+      "default": "all"
+    },
+    { "type": "header", "content": "t:settings.topbar_header" },
+    { "type": "checkbox", "id": "enable_topbar", "label": "t:labels.enable_topbar", "default": true },
+    {
+      "type": "select",
+      "id": "topbar_height",
+      "label": "t:labels.topbar_height",
+      "options": [
+        { "value": "extra_small", "label": "t:options.extra_small" },
+        { "value": "small", "label": "t:options.small" },
+        { "value": "medium", "label": "t:options.medium" },
+        { "value": "large", "label": "t:options.large" }
+      ],
+      "default": "extra_small"
+    },
+    {
+      "type": "select",
+      "id": "topbar_font",
+      "label": "t:labels.topbar_font",
+      "options": [
+        { "value": "primary", "label": "t:options.primary_font" },
+        { "value": "secondary", "label": "t:options.secondary_font" }
+      ],
+      "default": "secondary"
+    },
+    {
+      "type": "select",
+      "id": "topbar_font_size",
+      "label": "t:labels.topbar_font_size",
+      "options": [
+        { "value": "small", "label": "t:options.small" },
+        { "value": "medium", "label": "t:options.medium" },
+        { "value": "large", "label": "t:options.large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "text",
+      "id": "topbar_extra_item_text",
+      "label": "t:labels.topbar_extra_item_text",
+      "default": "Customer service"
+    },
+    {
+      "type": "select",
+      "id": "topbar_extra_item_icon",
+      "label": "t:labels.topbar_extra_item_icon",
+      "info": "t:settings.topbar_extra_item_icon_info",
+      "options": [
+        { "value": "none", "label": "t:options.no_icon" },
+        { "value": "chat", "label": "t:options.icon_chat" },
+        { "value": "phone", "label": "t:options.icon_phone" },
+        { "value": "help", "label": "t:options.icon_help" },
+        { "value": "email", "label": "t:options.icon_email" },
+        { "value": "user", "label": "t:options.icon_user" },
+        { "value": "truck", "label": "t:options.icon_truck" },
+        { "value": "star", "label": "t:options.icon_star" },
+        { "value": "heart", "label": "t:options.icon_heart" },
+        { "value": "check", "label": "t:options.icon_check" }
+      ],
+      "default": "none"
+    },
+    {
+      "type": "url",
+      "id": "topbar_extra_item_link",
+      "label": "t:labels.link",
+      "default": "/"
+    },
+    { "type": "header", "content": "t:settings.topbar_info_header" },
+    { "type": "paragraph", "content": "t:settings.topbar_info_paragraph" },
+    {
+      "type": "select",
+      "id": "topbar_display_style",
+      "label": "t:labels.topbar_display_style",
+      "options": [
+        { "value": "default", "label": "t:options.display_default" },
+        { "value": "carousel", "label": "t:options.display_carousel" }
+      ],
+      "default": "default"
     },
     {
       "type": "range",
-      "id": "logo_width",
-      "min": 50,
-      "max": 300,
-      "step": 10,
+      "id": "topbar_item_spacing",
+      "label": "t:labels.topbar_item_spacing",
+      "min": 0,
+      "max": 60,
+      "step": 2,
       "unit": "px",
-      "label": "t:labels.logo_width",
-      "default": 150
+      "default": 24
+    },
+    { "type": "header", "content": "t:settings.sticky_header" },
+    { "type": "checkbox", "id": "enable_sticky_header", "label": "t:labels.enable_sticky_header", "default": true },
+    {
+      "type": "select",
+      "id": "sticky_header_type",
+      "label": "t:labels.sticky_header_type",
+      "info": "t:settings.sticky_header_info",
+      "options": [
+        { "value": "sticky_header", "label": "t:options.sticky_header" },
+        { "value": "sticky_menu", "label": "t:options.sticky_menu" }
+      ],
+      "default": "sticky_menu"
+    },
+    { "type": "color_scheme", "id": "color_scheme", "label": "t:labels.color_scheme", "default": "scheme-1" },
+    { "type": "image_picker", "id": "logo", "label": "t:labels.logo" },
+    { "type": "range", "id": "logo_width", "min": 50, "max": 300, "step": 10, "unit": "px", "label": "t:labels.logo_width", "default": 150 },
+    { "type": "link_list", "id": "menu", "label": "t:labels.menu" },
+    { "type": "link_list", "id": "customer_account_menu", "label": "t:labels.customer_account_menu", "default": "customer-account-main-menu" },
+    { "type": "header", "content": "t:settings.navigation_header" },
+    {
+      "type": "select",
+      "id": "menu_items_alignment",
+      "label": "t:labels.menu_items_alignment",
+      "options": [
+        { "value": "left", "label": "t:options.alignment_left" },
+        { "value": "center", "label": "t:options.alignment_center" },
+        { "value": "right", "label": "t:options.alignment_right" },
+        { "value": "divide_evenly", "label": "t:options.alignment_divide_evenly" }
+      ],
+      "default": "center"
     },
     {
-      "type": "link_list",
-      "id": "menu",
-      "label": "t:labels.menu"
+      "type": "checkbox",
+      "id": "enable_scroll_effect",
+      "label": "t:labels.enable_scroll_effect",
+      "default": false,
+      "info": "t:settings.enable_scroll_effect_info"
     },
     {
-      "type": "link_list",
-      "id": "customer_account_menu",
-      "label": "t:labels.customer_account_menu",
-      "default": "customer-account-main-menu"
+      "type": "checkbox",
+      "id": "menu_parent_clickable_desktop",
+      "label": "t:labels.menu_parent_clickable_desktop",
+      "default": true,
+      "info": "t:settings.menu_parent_clickable_desktop_info"
+    },
+    {
+      "type": "checkbox",
+      "id": "menu_parent_clickable_mobile",
+      "label": "t:labels.menu_parent_clickable_mobile",
+      "default": false
+    },
+    { "type": "header", "content": "t:settings.pret_settings_header" },
+    { "type": "paragraph", "content": "t:settings.pret_settings_info" },
+    { "type": "checkbox", "id": "enable_pret_overrides", "label": "t:labels.enable_pret_overrides", "default": true },
+    { "type": "color_scheme", "id": "pret_color_scheme", "label": "t:labels.pret_color_scheme", "default": "scheme-1" },
+    { "type": "image_picker", "id": "pret_logo", "label": "t:labels.pret_logo" },
+    { "type": "range", "id": "pret_logo_width", "min": 50, "max": 300, "step": 10, "unit": "px", "label": "t:labels.pret_logo_width", "default": 150 },
+    { "type": "link_list", "id": "pret_menu", "label": "t:labels.pret_menu" },
+    { "type": "text", "id": "pret_topbar_extra_text", "label": "t:labels.pret_topbar_extra_text", "default": "Customer care" },
+    { "type": "url", "id": "pret_topbar_extra_link", "label": "t:labels.pret_topbar_extra_link" }
+  ],
+  "blocks": [
+    {
+      "type": "menu_promo",
+      "name": "t:general.menu_promo",
+      "settings": [
+        {
+          "type": "select",
+          "id": "brand_target",
+          "label": "t:labels.brand_target",
+          "options": [
+            { "value": "all", "label": "t:options.brand_all" },
+            { "value": "primary", "label": "t:options.brand_primary" },
+            { "value": "secondary", "label": "t:options.brand_secondary" },
+            { "value": "couture", "label": "t:options.brand_couture" },
+            { "value": "pret", "label": "t:options.brand_pret" }
+          ],
+          "default": "all"
+        },
+        { "type": "text", "id": "menu_item", "label": "t:labels.menu_item", "info": "t:settings.menu_item_info", "placeholder": "collections" },
+        { "type": "select", "id": "banner_height", "label": "t:labels.banner_height", "options": [{ "value": "1/1", "label": "1:1" },{ "value": "3/4", "label": "3:4" },{ "value": "4/3", "label": "4:3" },{ "value": "16/9", "label": "16:9" }], "default": "1/1" },
+        { "type": "checkbox", "id": "zoom_on_hover", "label": "t:labels.zoom_on_hover", "default": true },
+        { "type": "checkbox", "id": "show_content_below", "label": "t:labels.show_content_below", "default": true },
+        { "type": "select", "id": "banner_layout", "label": "t:labels.banner_layout", "options": [{ "value": "columns", "label": "t:options.columns" },{ "value": "rows", "label": "t:options.rows" }], "default": "columns" },
+        { "type": "color_scheme", "id": "color_scheme", "label": "t:labels.color_scheme", "default": "scheme-1" },
+        { "type": "header", "content": "t:settings.first_banner" },
+        { "type": "checkbox", "id": "enable_banner_1", "label": "t:labels.enable_banner", "default": true },
+        { "type": "image_picker", "id": "image_1", "label": "t:labels.image" },
+        { "type": "url", "id": "video_url_1", "label": "t:labels.video_url" },
+        { "type": "range", "id": "image_overlay_opacity", "label": "t:labels.image_overlay_opacity", "min": 0, "max": 100, "step": 5, "unit": "%", "default": 100 },
+        { "type": "text", "id": "caption_1", "label": "t:labels.caption" },
+        { "type": "url", "id": "link_1", "label": "t:labels.link" },
+        { "type": "text", "id": "link_label_1", "label": "t:labels.link_label", "default": "Shop now" },
+        { "type": "header", "content": "t:settings.second_banner" },
+        { "type": "checkbox", "id": "enable_banner_2", "label": "t:labels.enable_banner", "default": false },
+        { "type": "image_picker", "id": "image_2", "label": "t:labels.image" },
+        { "type": "url", "id": "video_url_2", "label": "t:labels.video_url" },
+        { "type": "text", "id": "caption_2", "label": "t:labels.caption" },
+        { "type": "url", "id": "link_2", "label": "t:labels.link" },
+        { "type": "text", "id": "link_label_2", "label": "t:labels.link_label", "default": "Shop now" }
+      ]
+    },
+    {
+      "type": "menu_button",
+      "name": "t:general.menu_button",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "brand_target",
+          "label": "t:labels.brand_target",
+          "options": [
+            { "value": "all", "label": "t:options.brand_all" },
+            { "value": "primary", "label": "t:options.brand_primary" },
+            { "value": "secondary", "label": "t:options.brand_secondary" },
+            { "value": "couture", "label": "t:options.brand_couture" },
+            { "value": "pret", "label": "t:options.brand_pret" }
+          ],
+          "default": "all"
+        },
+        { "type": "link_list", "id": "button_menu", "label": "t:labels.menu", "info": "t:settings.menu_button_info" }
+      ]
+    },
+    {
+      "type": "topbar_info",
+      "name": "t:general.topbar_info",
+      "settings": [
+        {
+          "type": "select",
+          "id": "brand_target",
+          "label": "t:labels.brand_target",
+          "options": [
+            { "value": "all", "label": "t:options.brand_all" },
+            { "value": "primary", "label": "t:options.brand_primary" },
+            { "value": "secondary", "label": "t:options.brand_secondary" },
+            { "value": "couture", "label": "t:options.brand_couture" },
+            { "value": "pret", "label": "t:options.brand_pret" }
+          ],
+          "default": "all"
+        },
+        { "type": "text", "id": "icon", "label": "t:labels.icon_emoji", "info": "t:settings.icon_emoji_info", "placeholder": "✓" },
+        { "type": "text", "id": "text", "label": "t:labels.text", "default": "Free shipping on orders over $50" },
+        { "type": "url", "id": "link", "label": "t:labels.link" }
+      ]
+    },
+    {
+      "type": "social_links",
+      "name": "t:general.social_links",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "brand_target",
+          "label": "t:labels.brand_target",
+          "options": [
+            { "value": "all", "label": "t:options.brand_all" },
+            { "value": "primary", "label": "t:options.brand_primary" },
+            { "value": "secondary", "label": "t:options.brand_secondary" },
+            { "value": "couture", "label": "t:options.brand_couture" },
+            { "value": "pret", "label": "t:options.brand_pret" }
+          ],
+          "default": "all"
+        },
+        { "type": "header", "content": "t:settings.social_links_header" },
+        { "type": "url", "id": "instagram", "label": "t:labels.instagram" },
+        { "type": "url", "id": "tiktok", "label": "t:labels.tiktok" },
+        { "type": "url", "id": "facebook", "label": "t:labels.facebook" },
+        { "type": "url", "id": "pinterest", "label": "t:labels.pinterest" }
+      ]
     }
   ]
 }
