@@ -23,7 +23,13 @@
     "checkout": "Checkout",
     "title": "Cart",
     "update": "Update",
-    "remove": "Remove"
+    "remove": "Remove",
+    "empty": "Your cart is currently empty."
+  },
+  "general": {
+    "newsletter": {
+      "success": "Thank you for subscribing!"
+    }
   },
   "customers": {
     "login": {

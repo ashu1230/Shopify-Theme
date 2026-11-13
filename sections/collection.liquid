@@ -5,47 +5,27 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/collection
 {% endcomment %}
 
-<div class="collection-section color-{{ section.settings.color_scheme }} gradient">
-  <h1>{{ collection.title }}</h1>
+<div class="collection-section full-width color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width">
+    <h1>{{ collection.title }}</h1>
 
-  <div class="collection-products">
-    {% paginate collection.products by 20 %}
-      {% for product in collection.products %}
-        <div class="collection-product">
-          {% if product.featured_image %}
-            {% render 'image',
-              class: 'collection-product__image',
-              image: product.featured_image,
-              url: product.url,
-              width: 400,
-              height: 400,
-              crop: 'center'
-            %}
-          {% endif %}
-          <div class="collection-product__content">
-            <p>{{ product.title | escape | link_to: product.url }}</p>
-            <p>{{ product.price | money }}</p>
-          </div>
-        </div>
-      {% endfor %}
+    <div class="collection-products">
+      {% paginate collection.products by 20 %}
+        {% for product in collection.products %}
+          {% render 'product-card', product: product %}
+        {% endfor %}
 
-      {{ paginate | default_pagination }}
-    {% endpaginate %}
+        {{ paginate | default_pagination }}
+      {% endpaginate %}
+    </div>
   </div>
 </div>
-
-{% stylesheet %}
-  .collection-products {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-  }
-{% endstylesheet %}
 
 {% schema %}
 {
   "name": "t:general.collection",
   "disabled_on": {
-    "groups": ["header", "footer"]
+    "groups": ["header", "footer", "custom.overlay"]
   },
   "settings": [
     {

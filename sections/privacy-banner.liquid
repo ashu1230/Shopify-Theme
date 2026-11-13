@@ -1,0 +1,109 @@
+<div
+  id="PrivacyBanner-{{ section.id }}"
+  class="privacy-banner color-{{ section.settings.color_scheme }} gradient"
+  role="region"
+  aria-label="Privacy and cookies"
+  style="display: none;"
+  {{ section.shopify_attributes }}
+>
+  <div class="privacy-banner__inner page-width">
+    <div class="privacy-banner__content">
+      {%- if section.settings.title != blank -%}
+        <strong class="privacy-banner__title">{{ section.settings.title | escape }}</strong>
+      {%- endif -%}
+      {%- if section.settings.content != blank -%}
+        <div class="privacy-banner__text rte">{{ section.settings.content }}</div>
+      {%- endif -%}
+    </div>
+    <div class="privacy-banner__actions">
+      {%- if section.settings.privacy_policy_link != blank -%}
+        <a href="{{ section.settings.privacy_policy_link }}" class="privacy-banner__link">
+          {{ section.settings.privacy_policy_text | default: 'Privacy policy' }}
+        </a>
+      {%- endif -%}
+      <button type="button" class="button button--primary privacy-banner__accept-btn">
+        {{ section.settings.accept_text | default: 'Accept' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    function initPrivacyBanner() {
+      const banner = document.getElementById('PrivacyBanner-{{ section.id }}');
+      if (!banner) return;
+      const storageKey = 'theme_privacy_accepted';
+
+      if (!localStorage.getItem(storageKey)) {
+        banner.style.display = 'block';
+      }
+
+      const acceptBtn = banner.querySelector('.privacy-banner__accept-btn');
+      acceptBtn?.addEventListener('click', function() {
+        localStorage.setItem(storageKey, 'true');
+        banner.style.display = 'none';
+      });
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initPrivacyBanner);
+    } else {
+      initPrivacyBanner();
+    }
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Privacy banner",
+  "class": "privacy-banner-section",
+  "limit": 1,
+  "enabled_on": {
+    "groups": ["custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "Title",
+      "default": "Cookie policy"
+    },
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "Content",
+      "default": "<p>We use cookies to give you the best experience on our site. By continuing, you agree to our use of cookies.</p>"
+    },
+    {
+      "type": "text",
+      "id": "accept_text",
+      "label": "Accept button text",
+      "default": "Accept"
+    },
+    {
+      "type": "url",
+      "id": "privacy_policy_link",
+      "label": "Privacy policy link"
+    },
+    {
+      "type": "text",
+      "id": "privacy_policy_text",
+      "label": "Privacy policy text",
+      "default": "Privacy policy"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Privacy banner"
+    }
+  ]
+}
+{% endschema %}
+

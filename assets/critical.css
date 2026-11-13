@@ -112,6 +112,87 @@ body {
 }
 
 /* Child elements that use the full-width utility class span the entire viewport. */
-.shopify-section > .full-width {
+.shopify-section > .full-width,
+.shopify-section:has(> footer) > footer,
+.shopify-section:has(> .footer-section) > .footer-section,
+.shopify-section:has(> .featured-collection) > .featured-collection,
+.shopify-section:has(> .header-section-wrap) > .header-section-wrap,
+.shopify-section:has(> .announcement-bar) > .announcement-bar,
+.shopify-section:has(> .slideshow) > .slideshow,
+.shopify-section:has(> .collection-section) > .collection-section,
+.shopify-section:has(> .collections-section) > .collections-section,
+.shopify-section:has(> .cart-section) > .cart-section,
+.shopify-section:has(> .search-section) > .search-section,
+.shopify-section:has(> .product-section) > .product-section,
+.shopify-section:has(> .blog-section) > .blog-section,
+.shopify-section:has(> .article-section) > .article-section,
+.shopify-section:has(> .page-section) > .page-section,
+.shopify-section:has(> .not-found-section) > .not-found-section,
+.shopify-section:has(> .image-with-text) > .image-with-text,
+.shopify-section:has(> .rich-text) > .rich-text,
+.shopify-section:has(> .contact-form-section) > .contact-form-section,
+.shopify-section:has(> .blog-posts-section) > .blog-posts-section,
+.shopify-section:has(> .scrolling-content-section) > .scrolling-content-section,
+.shopify-section:has(> .tabs-section) > .tabs-section,
+.shopify-section:has(> .custom-liquid-section) > .custom-liquid-section {
   grid-column: 1 / -1;
+}
+
+/* Page width constraint for inner content */
+.page-width {
+  max-width: var(--page-width, 1400px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--page-margin, 20px);
+  padding-right: var(--page-margin, 20px);
+  width: 100%;
+}
+
+/* Universal Button Styles */
+.button,
+.button--primary,
+.button--secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.85rem 2rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-radius: var(--style-border-radius-buttons, 0);
+  transition: all 0.25s ease;
+  cursor: pointer;
+  line-height: 1.2;
+}
+
+.button--primary {
+  background-color: var(--color-button, #1a1a1a);
+  color: var(--color-button-label, #ffffff);
+  border: 1px solid var(--color-button, #1a1a1a);
+}
+.button--primary:hover {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
+
+.button--secondary {
+  background-color: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+}
+.button--secondary:hover {
+  background-color: var(--color-foreground, #1a1a1a);
+  color: var(--color-background, #ffffff);
+}
+
+/* Universal Section Padding Utilities */
+.section--no-padding-top,
+[class*="--no-padding-top"] {
+  padding-top: 0 !important;
+}
+.section--no-padding-bottom,
+[class*="--no-padding-bottom"] {
+  padding-bottom: 0 !important;
 }

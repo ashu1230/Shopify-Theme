@@ -1,0 +1,212 @@
+<div
+  id="ContactForm-{{ section.id }}"
+  class="contact-form-section full-width color-{{ section.settings.color_scheme }} gradient section-{{ section.id }} {% if section.settings.remove_padding_top %}contact-form--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}contact-form--no-padding-bottom{% endif %}"
+  {{ section.shopify_attributes }}
+>
+  <div class="page-width">
+    <div class="contact-form__wrapper contact-form__wrapper--{{ section.settings.content_width }}">
+      {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+        <div class="contact-form__header contact-form__header--align-{{ section.settings.text_alignment }}">
+          {%- if section.settings.subheading != blank -%}
+            <span class="contact-form__subheading">{{ section.settings.subheading | escape }}</span>
+          {%- endif -%}
+          {%- if section.settings.heading != blank -%}
+            <h2 class="contact-form__heading">{{ section.settings.heading | escape }}</h2>
+          {%- endif -%}
+          {%- if section.settings.text != blank -%}
+            <div class="contact-form__intro rte">{{ section.settings.text }}</div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- form 'contact', id: 'ContactForm', class: 'contact-form' -%}
+        {%- if form.posted_successfully? -%}
+          <div class="contact-form__message contact-form__message--success" tabindex="-1" autofocus>
+            <p>{{ section.settings.success_message | default: 'Thanks for contacting us. We will get back to you as soon as possible.' }}</p>
+          </div>
+        {%- elsif form.errors -%}
+          <div class="contact-form__message contact-form__message--error" tabindex="-1" autofocus>
+            <p>{{ form.errors | default_errors }}</p>
+          </div>
+        {%- endif -%}
+
+        <div class="contact-form__fields">
+          <div class="contact-form__field-group">
+            <div class="contact-form__field">
+              <label for="ContactForm-name" class="contact-form__label">{{ 'Name' }}</label>
+              <input
+                type="text"
+                id="ContactForm-name"
+                name="contact[name]"
+                class="contact-form__input"
+                value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}"
+                placeholder="{{ section.settings.name_placeholder | default: 'Your name' }}"
+                autocomplete="name"
+              >
+            </div>
+
+            <div class="contact-form__field">
+              <label for="ContactForm-email" class="contact-form__label">{{ 'Email' }} <span aria-hidden="true">*</span></label>
+              <input
+                type="email"
+                id="ContactForm-email"
+                name="contact[email]"
+                class="contact-form__input"
+                value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}"
+                placeholder="{{ section.settings.email_placeholder | default: 'Your email' }}"
+                spellcheck="false"
+                autocomplete="email"
+                autocapitalize="off"
+                aria-required="true"
+                required
+              >
+            </div>
+          </div>
+
+          {%- if section.settings.show_phone -%}
+            <div class="contact-form__field">
+              <label for="ContactForm-phone" class="contact-form__label">{{ 'Phone number' }}</label>
+              <input
+                type="tel"
+                id="ContactForm-phone"
+                name="contact[phone]"
+                class="contact-form__input"
+                value="{% if form.phone %}{{ form.phone }}{% elsif customer %}{{ customer.phone }}{% endif %}"
+                placeholder="{{ section.settings.phone_placeholder | default: 'Phone number' }}"
+                autocomplete="tel"
+              >
+            </div>
+          {%- endif -%}
+
+          <div class="contact-form__field">
+            <label for="ContactForm-body" class="contact-form__label">{{ 'Message' }} <span aria-hidden="true">*</span></label>
+            <textarea
+              rows="6"
+              id="ContactForm-body"
+              name="contact[body]"
+              class="contact-form__textarea"
+              placeholder="{{ section.settings.message_placeholder | default: 'How can we help you?' }}"
+              aria-required="true"
+              required
+            >{{ form.body }}</textarea>
+          </div>
+
+          <div class="contact-form__submit-wrap contact-form__submit-wrap--align-{{ section.settings.button_alignment }}">
+            <button type="submit" class="button button--primary contact-form__submit">
+              {{ section.settings.button_label | default: 'Send message' }}
+            </button>
+          </div>
+        </div>
+      {%- endform -%}
+    </div>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Contact form",
+  "class": "contact-form-section",
+  "disabled_on": {
+    "groups": ["header", "footer", "custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "select",
+      "id": "content_width",
+      "label": "Form width",
+      "options": [
+        { "value": "narrow", "label": "Narrow" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "wide",   "label": "Wide" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Get in touch"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Contact us"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Have a question or custom inquiry? Fill out the form below and we will get back to you shortly.</p>"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "Header alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_phone",
+      "label": "Show phone number field",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Submit button label",
+      "default": "Send message"
+    },
+    {
+      "type": "select",
+      "id": "button_alignment",
+      "label": "Button alignment",
+      "options": [
+        { "value": "left",   "label": "Left" },
+        { "value": "center", "label": "Center" },
+        { "value": "right",  "label": "Right" }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "text",
+      "id": "success_message",
+      "label": "Success message",
+      "default": "Thanks for contacting us. We will get back to you as soon as possible."
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_top",
+      "label": "Remove padding top",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_bottom",
+      "label": "Remove padding bottom",
+      "default": false
+    }
+  ],
+  "presets": [
+    {
+      "name": "Contact form"
+    }
+  ]
+}
+{% endschema %}
+

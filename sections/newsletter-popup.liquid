@@ -1,0 +1,239 @@
+{%- unless section.settings.disabled -%}
+  <div
+    id="NewsletterPopup-{{ section.id }}"
+    class="newsletter-popup color-{{ section.settings.color_scheme }} gradient"
+    style="--overlay-opacity: {{ section.settings.overlay_opacity | default: 25 | divided_by: 100.0 }};"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+    data-delay="{{ section.settings.delay | default: 5 }}"
+    data-only-once="{{ section.settings.only_once }}"
+    {{ section.shopify_attributes }}
+  >
+    <div class="newsletter-popup__overlay{% if section.settings.enable_blur %} newsletter-popup__overlay--blur{% endif %}" aria-hidden="true"></div>
+    <div class="newsletter-popup__dialog">
+      <button type="button" class="newsletter-popup__close" aria-label="Close popup">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      {%- if section.settings.image != blank -%}
+        <div class="newsletter-popup__image-wrap">
+          {{
+            section.settings.image
+            | image_url: width: 600
+            | image_tag: class: 'newsletter-popup__image', loading: 'lazy'
+          }}
+        </div>
+      {%- endif -%}
+
+      <div class="newsletter-popup__content">
+        {%- if section.settings.subheading != blank -%}
+          <span class="newsletter-popup__subheading">{{ section.settings.subheading | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="newsletter-popup__heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <div class="newsletter-popup__text rte">{{ section.settings.text }}</div>
+        {%- endif -%}
+
+        {%- form 'customer', id: 'newsletter-popup-form', class: 'newsletter-popup__form' -%}
+          <input type="hidden" name="contact[tags]" value="newsletter,popup">
+          <div class="newsletter-popup__input-wrap">
+            <input
+              type="email"
+              name="contact[email]"
+              id="newsletter-popup-email"
+              class="newsletter-popup__input"
+              placeholder="{{ section.settings.placeholder | default: 'Enter your email' }}"
+              aria-label="Email address"
+              required
+            >
+            <button type="submit" class="button button--primary newsletter-popup__submit">
+              {{ section.settings.button_label | default: 'Subscribe' }}
+            </button>
+          </div>
+          {%- if form.posted_successfully? -%}
+            <p class="newsletter-popup__success">Thank you for subscribing!</p>
+          {%- endif -%}
+        {%- endform -%}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      function initNewsletterPopup() {
+        const popup = document.getElementById('NewsletterPopup-{{ section.id }}');
+        if (!popup) return;
+
+        const closeBtn = popup.querySelector('.newsletter-popup__close');
+        const overlay  = popup.querySelector('.newsletter-popup__overlay');
+        const delay    = parseInt(popup.dataset.delay || 5) * 1000;
+        const onlyOnce = popup.dataset.onlyOnce === 'true';
+        const storageKey = 'theme_newsletter_popup_seen';
+
+        const isDesignMode = Boolean(window.Shopify && window.Shopify.designMode);
+
+        function openPopup() {
+          popup.classList.add('is-open');
+          popup.setAttribute('aria-hidden', 'false');
+        }
+
+        function closePopup() {
+          popup.classList.remove('is-open');
+          popup.setAttribute('aria-hidden', 'true');
+          if (onlyOnce && !isDesignMode) {
+            localStorage.setItem(storageKey, 'true');
+          }
+        }
+
+        // Inside Shopify Theme Editor: always show immediately for editing
+        if (isDesignMode) {
+          openPopup();
+        } else {
+          // On live storefront: check if already dismissed
+          if (onlyOnce && localStorage.getItem(storageKey)) {
+            return;
+          }
+          setTimeout(openPopup, delay);
+        }
+
+        closeBtn?.addEventListener('click', closePopup);
+        overlay?.addEventListener('click', closePopup);
+
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && popup.classList.contains('is-open')) {
+            closePopup();
+          }
+        });
+
+        // Theme Editor live events
+        document.addEventListener('shopify:section:select', function(e) {
+          if (e.target.id === 'shopify-section-{{ section.id }}' || e.target.contains(popup)) {
+            openPopup();
+          }
+        });
+
+        document.addEventListener('shopify:section:deselect', function(e) {
+          if (e.target.id === 'shopify-section-{{ section.id }}' || e.target.contains(popup)) {
+            // Keep open or let user dismiss
+          }
+        });
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initNewsletterPopup);
+      } else {
+        initNewsletterPopup();
+      }
+
+      document.addEventListener('shopify:section:load', function(e) {
+        if (e.target.id === 'shopify-section-{{ section.id }}') {
+          initNewsletterPopup();
+        }
+      });
+    })();
+  </script>
+{%- endunless -%}
+
+{% schema %}
+{
+  "name": "Newsletter popup",
+  "class": "newsletter-popup-section",
+  "limit": 1,
+  "enabled_on": {
+    "groups": ["custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "disabled",
+      "label": "Disable popup",
+      "default": false
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "Newsletter"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Join our club"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Text",
+      "default": "<p>Sign up to receive early access, exclusive offers, and the latest news.</p>"
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "Email placeholder",
+      "default": "Enter your email"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "Button label",
+      "default": "Subscribe"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "min": 0,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "label": "Overlay darkness",
+      "default": 25
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_blur",
+      "label": "Enable background blur",
+      "default": false
+    },
+    {
+      "type": "range",
+      "id": "delay",
+      "min": 1,
+      "max": 30,
+      "step": 1,
+      "unit": "s",
+      "label": "Delay before opening",
+      "default": 5
+    },
+    {
+      "type": "checkbox",
+      "id": "only_once",
+      "label": "Show only once per visitor",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Newsletter popup"
+    }
+  ]
+}
+{% endschema %}
+

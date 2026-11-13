@@ -1,0 +1,247 @@
+{%- comment -%}
+  snippets/cart-drawer.liquid
+  ============================
+  Slide-out cart drawer controlled by settings.cart_type.
+  Include ONCE in layout/theme.liquid before </body>.
+  JS sends 'cart:open' custom event to open it.
+
+  Cart type: drawer | page | modal  → settings.cart_type
+  Cart icon: bag | cart             → settings.cart_icon
+  Free shipping: settings.cart_show_shipping_message, settings.cart_free_shipping_amount
+{%- endcomment -%}
+
+{%- if settings.cart_type == 'drawer' or settings.cart_type == 'modal' -%}
+
+<div id="cart-overlay" class="cart-overlay" aria-hidden="true"></div>
+
+<div
+  id="cart-drawer"
+  class="cart-drawer cart-drawer--{{ settings.cart_type }}"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Shopping cart"
+  aria-hidden="true"
+>
+  {%- comment -%} Header {%- endcomment -%}
+  <div class="cart-drawer__header">
+    <h2 class="cart-drawer__title">Your Cart</h2>
+    <button type="button" class="cart-drawer__close" aria-label="Close cart">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+  </div>
+
+  {%- comment -%} Free shipping progress bar {%- endcomment -%}
+  {%- if settings.cart_show_shipping_message -%}
+    {%- assign free_shipping_cents = settings.cart_free_shipping_amount | times: 100 -%}
+    <div class="cart-drawer__shipping-bar" id="cart-shipping-bar">
+      <div class="cart-drawer__shipping-track">
+        <div class="cart-drawer__shipping-fill" id="cart-shipping-fill" style="width: 0%;"></div>
+      </div>
+      <p class="cart-drawer__shipping-text" id="cart-shipping-text">
+        {%- assign remaining = free_shipping_cents | minus: cart.total_price -%}
+        {%- if remaining <= 0 -%}
+          🎉 You've unlocked free shipping!
+        {%- else -%}
+          Add {{ remaining | money }} more for free shipping
+        {%- endif -%}
+      </p>
+    </div>
+  {%- endif -%}
+
+  {%- comment -%} Body — cart items {%- endcomment -%}
+  <div class="cart-drawer__body" id="cart-drawer-body">
+    {%- if cart.item_count == 0 -%}
+      <div class="cart-drawer__empty">
+        <p>Your cart is empty.</p>
+        {%- if settings.cart_empty_link != blank -%}
+          <a href="{{ settings.cart_empty_link }}" class="button button--primary cart-drawer__empty-link">Continue Shopping</a>
+        {%- else -%}
+          <a href="{{ routes.all_products_collection_url }}" class="button button--primary cart-drawer__empty-link">Continue Shopping</a>
+        {%- endif -%}
+      </div>
+    {%- else -%}
+      <ul class="cart-drawer__items list-unstyled" id="cart-items-list">
+        {%- for item in cart.items -%}
+          <li class="cart-drawer__item" data-line="{{ forloop.index }}">
+            <a href="{{ item.url }}" class="cart-drawer__item-image-link">
+              {%- if item.image -%}
+                <img
+                  src="{{ item.image | image_url: width: 120 }}"
+                  alt="{{ item.image.alt | escape }}"
+                  class="cart-drawer__item-image"
+                  width="80" height="80"
+                  loading="lazy"
+                >
+              {%- endif -%}
+            </a>
+            <div class="cart-drawer__item-info">
+              <a href="{{ item.url }}" class="cart-drawer__item-title">{{ item.product.title }}</a>
+              {%- unless item.variant.title == 'Default Title' -%}
+                <p class="cart-drawer__item-variant">{{ item.variant.title }}</p>
+              {%- endunless -%}
+              <div class="cart-drawer__item-row">
+                <div class="cart-drawer__quantity-wrap">
+                  <button class="cart-drawer__qty-btn" data-action="decrease" data-line="{{ forloop.index }}" aria-label="Decrease quantity">−</button>
+                  <span class="cart-drawer__qty-value" id="qty-{{ forloop.index }}">{{ item.quantity }}</span>
+                  <button class="cart-drawer__qty-btn" data-action="increase" data-line="{{ forloop.index }}" aria-label="Increase quantity">+</button>
+                </div>
+                <span class="cart-drawer__item-price">{{ item.final_line_price | money }}</span>
+              </div>
+            </div>
+            <button
+              class="cart-drawer__item-remove"
+              data-line="{{ forloop.index }}"
+              aria-label="Remove {{ item.product.title | escape }} from cart"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+              </svg>
+            </button>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Footer — subtotal + checkout {%- endcomment -%}
+  {%- if cart.item_count > 0 -%}
+    <div class="cart-drawer__footer">
+      <div class="cart-drawer__subtotal-row">
+        <span>Subtotal</span>
+        <span class="cart-drawer__subtotal" id="cart-subtotal">{{ cart.total_price | money }}</span>
+      </div>
+      <p class="cart-drawer__taxes-note">Taxes and shipping calculated at checkout</p>
+      <a href="{{ routes.cart_url }}" class="button button--secondary cart-drawer__view-cart">View cart</a>
+      <a href="/checkout" class="button button--primary cart-drawer__checkout">Check out</a>
+    </div>
+  {%- endif -%}
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  const cartDrawer  = document.getElementById('cart-drawer');
+  const cartOverlay = document.getElementById('cart-overlay');
+  const closeBtn    = cartDrawer?.querySelector('.cart-drawer__close');
+
+  function openCart() {
+    if (!cartDrawer) return;
+    cartDrawer.setAttribute('aria-hidden', 'false');
+    cartDrawer.classList.add('is-open');
+    if (cartOverlay) cartOverlay.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+    closeBtn?.focus();
+  }
+
+  function closeCart() {
+    if (!cartDrawer) return;
+    cartDrawer.setAttribute('aria-hidden', 'true');
+    cartDrawer.classList.remove('is-open');
+    if (cartOverlay) cartOverlay.classList.remove('is-open');
+    document.body.style.overflow = '';
+  }
+
+  // Listen for open events from quick-add or header cart icon
+  document.addEventListener('cart:open', openCart);
+  if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
+  if (closeBtn)    closeBtn.addEventListener('click', closeCart);
+
+  // ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && cartDrawer?.classList.contains('is-open')) closeCart();
+  });
+
+  // ── Quantity update & remove ──
+  function updateCartLine(line, quantity) {
+    fetch('/cart/change.js', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ line, quantity })
+    })
+    .then(r => r.json())
+    .then(cart => refreshDrawer(cart))
+    .catch(console.error);
+  }
+
+  function refreshDrawer(cart) {
+    // Update subtotal
+    const subtotalEl = document.getElementById('cart-subtotal');
+    if (subtotalEl) {
+      subtotalEl.textContent = formatMoney(cart.total_price);
+    }
+
+    // Update shipping bar
+    {%- if settings.cart_show_shipping_message -%}
+    const fillEl = document.getElementById('cart-shipping-fill');
+    const textEl = document.getElementById('cart-shipping-text');
+    const freeThreshold = {{ free_shipping_cents }};
+    if (fillEl) {
+      const pct = Math.min((cart.total_price / freeThreshold) * 100, 100);
+      fillEl.style.width = pct + '%';
+    }
+    if (textEl) {
+      const remaining = freeThreshold - cart.total_price;
+      textEl.textContent = remaining <= 0
+        ? "🎉 You've unlocked free shipping!"
+        : 'Add ' + formatMoney(remaining) + ' more for free shipping';
+    }
+    {%- endif -%}
+
+    // Reload drawer body for simplicity (re-fetch section)
+    fetch(window.location.pathname + '?sections=cart-drawer-body')
+      .catch(() => null);
+
+    // Update header cart count badge if present
+    const badge = document.querySelector('[data-cart-count]');
+    if (badge) badge.textContent = cart.item_count;
+
+    // If cart is now empty, reload drawer body
+    if (cart.item_count === 0) {
+      const body = document.getElementById('cart-drawer-body');
+      const footer = cartDrawer.querySelector('.cart-drawer__footer');
+      if (body) body.innerHTML = '<div class="cart-drawer__empty"><p>Your cart is empty.</p><a href="{{ settings.cart_empty_link | default: '/collections/all' }}" class="button button--primary cart-drawer__empty-link">Continue Shopping</a></div>';
+      if (footer) footer.remove();
+    }
+  }
+
+  function formatMoney(cents) {
+    return new Intl.NumberFormat('en-IN', { style: 'currency', currency: '{{ shop.currency }}', minimumFractionDigits: 2 }).format(cents / 100);
+  }
+
+  // Delegate quantity & remove clicks
+  if (cartDrawer) {
+    cartDrawer.addEventListener('click', function(e) {
+      const qtyBtn    = e.target.closest('.cart-drawer__qty-btn');
+      const removeBtn = e.target.closest('.cart-drawer__item-remove');
+
+      if (qtyBtn) {
+        const line     = parseInt(qtyBtn.dataset.line);
+        const action   = qtyBtn.dataset.action;
+        const qtyEl    = document.getElementById('qty-' + line);
+        const current  = parseInt(qtyEl?.textContent || '1');
+        const newQty   = action === 'increase' ? current + 1 : Math.max(0, current - 1);
+        if (qtyEl) qtyEl.textContent = newQty;
+        updateCartLine(line, newQty);
+      }
+
+      if (removeBtn) {
+        const line = parseInt(removeBtn.dataset.line);
+        removeBtn.closest('.cart-drawer__item')?.remove();
+        updateCartLine(line, 0);
+      }
+    });
+  }
+
+  // Open cart drawer when quick-add succeeds (triggered by product-card.liquid)
+  document.addEventListener('cart:item-added', openCart);
+
+})();
+</script>
+
+{%- endif -%}
+

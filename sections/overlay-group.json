@@ -1,0 +1,44 @@
+{
+  "type": "custom.overlay",
+  "name": "Overlay group",
+  "sections": {
+    "cart-drawer": {
+      "type": "cart-drawer",
+      "settings": {
+        "cart_type": "drawer",
+        "show_shipping_message": true
+      }
+    },
+    "newsletter-popup": {
+      "type": "newsletter-popup",
+      "settings": {
+        "disabled": false,
+        "color_scheme": "scheme-1",
+        "subheading": "Newsletter",
+        "heading": "Join our club",
+        "text": "<p>Sign up to receive early access, exclusive offers, and the latest news.</p>",
+        "placeholder": "Enter your email",
+        "button_label": "Subscribe",
+        "delay": 5,
+        "only_once": true
+      }
+    },
+    "privacy-banner": {
+      "type": "privacy-banner",
+      "disabled": true,
+      "settings": {
+        "color_scheme": "scheme-1",
+        "title": "Cookie policy",
+        "content": "<p>We use cookies to give you the best experience on our site. By continuing, you agree to our use of cookies.</p>",
+        "accept_text": "Accept",
+        "privacy_policy_text": "Privacy policy"
+      }
+    }
+  },
+  "order": [
+    "cart-drawer",
+    "newsletter-popup",
+    "privacy-banner"
+  ]
+}
+

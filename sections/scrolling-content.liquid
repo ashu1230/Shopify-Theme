@@ -1,0 +1,200 @@
+<div
+  id="ScrollingContent-{{ section.id }}"
+  class="scrolling-content-section color-{{ section.settings.color_scheme }} gradient full-width {% if section.settings.remove_padding_top %}section--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}section--no-padding-bottom{% endif %}"
+  style="--scrolling-speed: {{ section.settings.speed | default: 24 }}s;"
+  {{ section.shopify_attributes }}
+>
+  <div class="scrolling-content {% if section.settings.pause_on_hover %}scrolling-content--pause{% endif %} scrolling-content--direction-{{ section.settings.direction | default: 'left' }} scrolling-content--size-{{ section.settings.text_size | default: 'medium' }} scrolling-content--transform-{{ section.settings.text_transform | default: 'uppercase' }}">
+    {%- comment -%} 2 identical tracks for seamless infinite CSS animation {%- endcomment -%}
+    {%- for track in (1..2) -%}
+      <div class="scrolling-content__track" aria-hidden="{% if forloop.index > 1 %}true{% else %}false{% endif %}">
+        {%- if section.blocks.size > 0 -%}
+          {%- for block in section.blocks -%}
+            <div class="scrolling-content__item" {{ block.shopify_attributes }}>
+              {%- if block.settings.icon != 'none' -%}
+                <span class="scrolling-content__icon" aria-hidden="true">
+                  {%- case block.settings.icon -%}
+                    {%- when 'star' -%}
+                      ★
+                    {%- when 'sparkle' -%}
+                      ✦
+                    {%- when 'check' -%}
+                      ✓
+                    {%- when 'heart' -%}
+                      ♥
+                    {%- when 'dot' -%}
+                      •
+                    {%- when 'arrow' -%}
+                      →
+                  {%- endcase -%}
+                </span>
+              {%- endif -%}
+
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}" class="scrolling-content__link">
+                  {{ block.settings.text | escape }}
+                </a>
+              {%- else -%}
+                <span class="scrolling-content__text">
+                  {{ block.settings.text | escape }}
+                </span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        {%- else -%}
+          {%- for i in (1..4) -%}
+            <div class="scrolling-content__item">
+              <span class="scrolling-content__icon" aria-hidden="true">★</span>
+              <span class="scrolling-content__text">Announce something special about your store</span>
+            </div>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Scrolling content",
+  "class": "scrolling-content-section",
+  "disabled_on": {
+    "groups": ["header", "footer", "custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-2"
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 10,
+      "max": 60,
+      "step": 2,
+      "unit": "s",
+      "label": "Animation duration",
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "direction",
+      "label": "Scroll direction",
+      "options": [
+        { "value": "left", "label": "Right to left" },
+        { "value": "right", "label": "Left to right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "text_size",
+      "label": "Text size",
+      "options": [
+        { "value": "small", "label": "Small" },
+        { "value": "medium", "label": "Medium" },
+        { "value": "large", "label": "Large" }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "select",
+      "id": "text_transform",
+      "label": "Text transform",
+      "options": [
+        { "value": "uppercase", "label": "Uppercase" },
+        { "value": "none", "label": "Standard" }
+      ],
+      "default": "uppercase"
+    },
+    {
+      "type": "checkbox",
+      "id": "pause_on_hover",
+      "label": "Pause on hover",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_top",
+      "default": false,
+      "label": "Remove top padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_bottom",
+      "default": false,
+      "label": "Remove bottom padding"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Scrolling item",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Text",
+          "default": "Complimentary Worldwide Shipping"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Link"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Separator icon",
+          "options": [
+            { "value": "none", "label": "None" },
+            { "value": "star", "label": "Star" },
+            { "value": "sparkle", "label": "Sparkle" },
+            { "value": "check", "label": "Checkmark" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "dot", "label": "Dot" },
+            { "value": "arrow", "label": "Arrow" }
+          ],
+          "default": "star"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Scrolling content",
+      "category": "Content",
+      "blocks": [
+        {
+          "type": "item",
+          "settings": {
+            "text": "Complimentary Worldwide Express Shipping",
+            "icon": "star"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "text": "Handcrafted Luxury Materials & Tailoring",
+            "icon": "sparkle"
+          }
+        },
+        {
+          "type": "item",
+          "settings": {
+            "text": "30-Day Hassle-Free Returns & Exchanges",
+            "icon": "check"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}
+

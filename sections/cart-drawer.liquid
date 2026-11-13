@@ -1,0 +1,46 @@
+<div
+  id="cart-drawer-section-{{ section.id }}"
+  class="cart-drawer-section"
+  data-cart-type="{{ section.settings.cart_type | default: settings.cart_type | default: 'drawer' }}"
+>
+  {% render 'cart-drawer' %}
+</div>
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "class": "cart-drawer-wrapper",
+  "limit": 1,
+  "enabled_on": {
+    "groups": ["custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "Settings for the cart drawer can be configured here and in Theme Settings → Cart."
+    },
+    {
+      "type": "select",
+      "id": "cart_type",
+      "label": "Cart type",
+      "options": [
+        { "value": "drawer", "label": "Drawer" },
+        { "value": "modal",  "label": "Modal" }
+      ],
+      "default": "drawer"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shipping_message",
+      "label": "Show free shipping bar",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Cart drawer"
+    }
+  ]
+}
+{% endschema %}
+

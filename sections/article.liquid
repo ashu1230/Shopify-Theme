@@ -1,4 +1,4 @@
-{% comment %}
+﻿{% comment %}
   This section is used in the article template to render the article page, which
   displays the full content of the blog post and can optionally include a
   comments section for customers (not shown in this example).
@@ -6,7 +6,8 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/article
 {% endcomment %}
 
-<div class="article-section color-{{ section.settings.color_scheme }} gradient">
+<div class="article-section full-width color-{{ section.settings.color_scheme }} gradient">
+  <div class="page-width">
   {% if article.image %}
     {{ article.image | image_url: width: 1000 | image_tag }}
   {% endif %}
@@ -60,13 +61,14 @@
       <input type="submit" value="{{ 'blog.comment_form_submit' | t }}">
     {% endform %}
   {% endif %}
+  </div>
 </div>
 
 {% schema %}
 {
   "name": "t:general.article",
   "disabled_on": {
-    "groups": ["header", "footer"]
+    "groups": ["header", "footer", "custom.overlay"]
   },
   "settings": [
     {

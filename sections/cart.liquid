@@ -5,37 +5,99 @@
   https://shopify.dev/docs/storefronts/themes/architecture/templates/cart
 {% endcomment %}
 
-<div class="cart-section color-{{ section.settings.color_scheme }} gradient">
-  <h1>{{ 'cart.title' | t }}</h1>
+<div class="cart-section full-width color-{{ section.settings.color_scheme }} gradient">
+  <div class="cart-section__header">
+    <h1 class="cart-section__title">{{ 'cart.title' | t }}</h1>
+  </div>
 
-  <form action="{{ routes.cart_url }}" method="post">
-    <table>
-      {% for item in cart.items %}
-        <tr>
-          <td>
-            {% render 'image', image: item.image, url: item.url %}
-          </td>
-          <td>
-            <p>{{ item.product.title }}</p>
-            {{ 'cart.remove' | t | link_to: item.url_to_remove }}
-          </td>
-          <td>
-            <input type="text" name="updates[]" value="{{ item.quantity }}">
-            <input type="submit" value="{{ 'cart.update' | t }}">
-          </td>
-        </tr>
-      {% endfor %}
-    </table>
+  {%- if settings.cart_show_shipping_message -%}
+    {%- assign free_shipping_cents = settings.cart_free_shipping_amount | times: 100 -%}
+    <div class="cart-page__shipping-bar">
+      <div class="cart-page__shipping-track">
+        {%- assign pct = cart.total_price | times: 100.0 | divided_by: free_shipping_cents -%}
+        {%- if pct > 100 -%}{%- assign pct = 100 -%}{%- endif -%}
+        <div class="cart-page__shipping-fill" style="width: {{ pct }}%;"></div>
+      </div>
+      <p class="cart-page__shipping-text">
+        {%- assign remaining = free_shipping_cents | minus: cart.total_price -%}
+        {%- if remaining <= 0 -%}
+          ðŸŽ‰ You've unlocked free shipping!
+        {%- else -%}
+          Add {{ remaining | money }} more for free shipping
+        {%- endif -%}
+      </p>
+    </div>
+  {%- endif -%}
 
-    <input type="submit" name="checkout" value="{{ 'cart.checkout' | t }}">
-  </form>
+  {%- if cart.item_count == 0 -%}
+    <div class="cart-page__empty">
+      <p>{{ 'cart.empty' | t | default: 'Your cart is currently empty.' }}</p>
+      <a href="{{ settings.cart_empty_link | default: '/collections/all' }}" class="button button--primary">
+        Continue shopping
+      </a>
+    </div>
+  {%- else -%}
+    <form action="{{ routes.cart_url }}" method="post" class="cart-page__form">
+      <table class="cart-page__table">
+        <thead>
+          <tr>
+            <th class="cart-page__th-product">Product</th>
+            <th class="cart-page__th-quantity">Quantity</th>
+            <th class="cart-page__th-total">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart.items %}
+            <tr class="cart-page__row">
+              <td class="cart-page__td-product">
+                <div class="cart-page__product-cell">
+                  {% if item.image %}
+                    <a href="{{ item.url }}" class="cart-page__img-link">
+                      <img src="{{ item.image | image_url: width: 140 }}" alt="{{ item.image.alt | escape }}" class="cart-page__img" width="70" height="70" loading="lazy">
+                    </a>
+                  {% endif %}
+                  <div class="cart-page__product-meta">
+                    <a href="{{ item.url }}" class="cart-page__product-title">{{ item.product.title }}</a>
+                    {% unless item.variant.title == 'Default Title' %}
+                      <span class="cart-page__variant-title">{{ item.variant.title }}</span>
+                    {% endunless %}
+                    <a href="{{ item.url_to_remove }}" class="cart-page__remove-link">{{ 'cart.remove' | t | default: 'Remove' }}</a>
+                  </div>
+                </div>
+              </td>
+              <td class="cart-page__td-quantity">
+                <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" class="cart-page__qty-input" aria-label="Quantity">
+              </td>
+              <td class="cart-page__td-total">
+                <span class="cart-page__line-price">{{ item.final_line_price | money }}</span>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="cart-page__footer">
+        <div class="cart-page__actions">
+          <input type="submit" name="update" value="{{ 'cart.update' | t | default: 'Update' }}" class="button button--secondary">
+        </div>
+        <div class="cart-page__subtotal-box">
+          <div class="cart-page__subtotal-row">
+            <span>Subtotal:</span>
+            <span class="cart-page__subtotal-val">{{ cart.total_price | money }}</span>
+          </div>
+          <p class="cart-page__taxes-note">Taxes and shipping calculated at checkout</p>
+          <input type="submit" name="checkout" value="{{ 'cart.checkout' | t | default: 'Check out' }}" class="button button--primary cart-page__checkout-btn">
+        </div>
+      </div>
+    </form>
+  {%- endif -%}
 </div>
 
 {% schema %}
 {
   "name": "t:general.cart",
   "disabled_on": {
-    "groups": ["header", "footer"]
+    "groups": ["header", "footer", "custom.overlay"]
   },
   "settings": [
     {

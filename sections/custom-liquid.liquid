@@ -1,0 +1,56 @@
+<div
+  id="CustomLiquid-{{ section.id }}"
+  class="custom-liquid-section color-{{ section.settings.color_scheme }} gradient full-width {% if section.settings.remove_padding_top %}section--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}section--no-padding-bottom{% endif %}"
+  {{ section.shopify_attributes }}
+>
+  <div class="page-width">
+    {{ section.settings.custom_liquid }}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Custom Liquid",
+  "class": "custom-liquid-section",
+  "disabled_on": {
+    "groups": ["header", "footer", "custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "Custom Liquid",
+      "info": "Add app snippets or custom Liquid / HTML code."
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_top",
+      "default": false,
+      "label": "Remove top padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_bottom",
+      "default": false,
+      "label": "Remove bottom padding"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom Liquid",
+      "category": "Layout"
+    }
+  ]
+}
+{% endschema %}
+

@@ -205,5 +205,403 @@
         "default": 0
       }
     ]
+  },
+  {
+    "name": "Appearance",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Adapt the theme to your brand style by changing rounded elements, spacing and icons style."
+      },
+      {
+        "type": "range",
+        "id": "icon_thickness",
+        "min": 1,
+        "max": 3,
+        "step": 0.5,
+        "unit": "px",
+        "label": "Icon thickness",
+        "default": 1.5
+      },
+      {
+        "type": "header",
+        "content": "Section spacing"
+      },
+      {
+        "type": "select",
+        "id": "section_vertical_spacing",
+        "label": "Vertical space between sections",
+        "options": [
+          { "value": "small",  "label": "Small"  },
+          { "value": "medium", "label": "Medium" },
+          { "value": "large",  "label": "Large"  }
+        ],
+        "default": "medium"
+      },
+      {
+        "type": "header",
+        "content": "Rounding"
+      },
+      {
+        "type": "range",
+        "id": "appearance_button_corner_radius",
+        "min": 0,
+        "max": 40,
+        "step": 1,
+        "unit": "px",
+        "label": "Button corner radius",
+        "default": 0
+      },
+      {
+        "type": "range",
+        "id": "appearance_input_corner_radius",
+        "min": 0,
+        "max": 20,
+        "step": 1,
+        "unit": "px",
+        "label": "Form input corner radius",
+        "default": 0
+      }
+    ]
+  },
+  {
+    "name": "Currency format",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Currency codes"
+      },
+      {
+        "type": "paragraph",
+        "content": "Cart and checkout total prices always show currency codes. Example: $1.00 USD."
+      },
+      {
+        "type": "checkbox",
+        "id": "show_currency_codes",
+        "label": "Show currency codes",
+        "default": false
+      }
+    ]
+  },
+  {
+    "name": "Animation",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Users who configured their preferences to minimize non-essential motion will automatically experience reduced animations."
+      },
+      {
+        "type": "checkbox",
+        "id": "animation_page_transition",
+        "label": "Show page transition",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "animation_button_transition",
+        "label": "Show button transition",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "animation_image_zoom_hover",
+        "label": "Show image zoom on hover",
+        "info": "Applies to different sections such as collection list, mega-menu...",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "animation_reveal_products",
+        "label": "Reveal products one by one",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "animation_reveal_blog_posts",
+        "label": "Reveal blog posts one by one",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "animation_reveal_menu_items",
+        "label": "Reveal menu items one by one",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Color swatch",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "swatch_round",
+        "label": "Round color swatches",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "Configuration (deprecated)"
+      },
+      {
+        "type": "textarea",
+        "id": "swatch_config",
+        "label": "Color swatch configuration",
+        "default": "Red:#ff0000\nGreen:#00ff00\nBlue:#0000ff",
+        "info": "Native color swatch should be used instead. [Learn more](https://help.shopify.com/manual/online-store/themes/theme-structure/color-swatches). Configuration based color swatches is deprecated and will be removed in the future. If you still need to use the configuration based system, you can [learn more](https://help.shopify.com/manual/online-store/themes/theme-structure/color-swatches) about the exact naming convention."
+      }
+    ]
+  },
+  {
+    "name": "Product card",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Product image"
+      },
+      {
+        "type": "select",
+        "id": "product_card_image_size",
+        "label": "Image size",
+        "options": [
+          { "value": "natural",   "label": "Natural"               },
+          { "value": "square",    "label": "Square (1:1)"          },
+          { "value": "portrait",  "label": "Portrait (4:5) - fill" },
+          { "value": "landscape", "label": "Landscape (5:4)"       }
+        ],
+        "default": "portrait"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_card_secondary_image",
+        "label": "Show secondary image on hover",
+        "default": true
+      },
+      {
+        "type": "header",
+        "content": "Product info"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_card_show_vendor",
+        "label": "Show vendor",
+        "default": false
+      },
+      {
+        "type": "range",
+        "id": "product_card_title_max_lines",
+        "min": 0,
+        "max": 6,
+        "step": 1,
+        "label": "Title maximum lines (0 to never truncate)",
+        "default": 0
+      },
+      {
+        "type": "radio",
+        "id": "product_card_text_font",
+        "label": "Text font",
+        "options": [
+          { "value": "heading",   "label": "Heading"   },
+          { "value": "body_text", "label": "Body text" }
+        ],
+        "default": "heading"
+      },
+      {
+        "type": "select",
+        "id": "product_card_text_casing",
+        "label": "Text casing",
+        "options": [
+          { "value": "inherit",    "label": "Inherit"    },
+          { "value": "uppercase",  "label": "Uppercase"  },
+          { "value": "lowercase",  "label": "Lowercase"  },
+          { "value": "capitalize", "label": "Capitalize" }
+        ],
+        "default": "inherit"
+      },
+      {
+        "type": "select",
+        "id": "product_card_price_varies",
+        "label": "When price varies...",
+        "options": [
+          { "value": "show_min",   "label": "Show min price (e.g. From $10)"   },
+          { "value": "show_range", "label": "Show price range (e.g. $10 - $20)" }
+        ],
+        "default": "show_min"
+      },
+      {
+        "type": "select",
+        "id": "product_card_color_display",
+        "label": "Color display mode",
+        "options": [
+          { "value": "hide",     "label": "Hide"     },
+          { "value": "swatches", "label": "Swatches" },
+          { "value": "text",     "label": "Text"     },
+          { "value": "count",    "label": "Count"    }
+        ],
+        "default": "hide"
+      },
+      {
+        "type": "header",
+        "content": "Product rating"
+      },
+      {
+        "type": "paragraph",
+        "content": "To display a rating, add a product rating app. [Learn more](https://help.shopify.com/manual/online-store/themes/theme-structure/page-types#product-pages-overview)"
+      },
+      {
+        "type": "checkbox",
+        "id": "product_card_show_rating",
+        "label": "Show product rating",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "product_card_show_no_reviews",
+        "label": "Show if no reviews",
+        "default": false
+      },
+      {
+        "type": "select",
+        "id": "product_card_rating_display",
+        "label": "Show product rating as...",
+        "options": [
+          { "value": "average", "label": "Average rating (e.g. 4.2)" },
+          { "value": "count",   "label": "Review count (e.g. 128)"   },
+          { "value": "both",    "label": "Both"                       }
+        ],
+        "default": "average"
+      }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart type",
+        "options": [
+          { "value": "drawer", "label": "Drawer" },
+          { "value": "page",   "label": "Page"   },
+          { "value": "modal",  "label": "Modal"  }
+        ],
+        "default": "drawer"
+      },
+      {
+        "type": "select",
+        "id": "cart_icon",
+        "label": "Cart icon",
+        "options": [
+          { "value": "bag",  "label": "Shopping bag"  },
+          { "value": "cart", "label": "Shopping cart" }
+        ],
+        "default": "bag"
+      },
+      {
+        "type": "url",
+        "id": "cart_empty_link",
+        "label": "Empty cart link"
+      },
+      {
+        "type": "header",
+        "content": "Free shipping message"
+      },
+      {
+        "type": "paragraph",
+        "content": "Show a shipping message advancement on cart page and cart drawer. Configure your shipping rates to match the amount."
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_shipping_message",
+        "label": "Show shipping message",
+        "default": false
+      },
+      {
+        "type": "number",
+        "id": "cart_free_shipping_amount",
+        "label": "Free shipping minimum amount",
+        "default": 50,
+        "info": "Indicate the value in your store main currency, without currency code. To have different amount per market, use the Translate & Adapt app."
+      }
+    ]
+  },
+  {
+    "name": "Social media",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Accounts"
+      },
+      {
+        "type": "url",
+        "id": "social_facebook_link",
+        "label": "Facebook"
+      },
+      {
+        "type": "url",
+        "id": "social_twitter_link",
+        "label": "X (formerly Twitter)"
+      },
+      {
+        "type": "url",
+        "id": "social_pinterest_link",
+        "label": "Pinterest"
+      },
+      {
+        "type": "url",
+        "id": "social_threads_link",
+        "label": "Threads"
+      },
+      {
+        "type": "url",
+        "id": "social_instagram_link",
+        "label": "Instagram"
+      },
+      {
+        "type": "url",
+        "id": "social_vimeo_link",
+        "label": "Vimeo"
+      },
+      {
+        "type": "url",
+        "id": "social_whatsapp_link",
+        "label": "WhatsApp"
+      },
+      {
+        "type": "url",
+        "id": "social_tumblr_link",
+        "label": "Tumblr"
+      },
+      {
+        "type": "url",
+        "id": "social_youtube_link",
+        "label": "YouTube"
+      },
+      {
+        "type": "url",
+        "id": "social_tiktok_link",
+        "label": "TikTok"
+      },
+      {
+        "type": "url",
+        "id": "social_snapchat_link",
+        "label": "Snapchat"
+      },
+      {
+        "type": "url",
+        "id": "social_linkedin_link",
+        "label": "LinkedIn"
+      }
+    ]
+  },
+  {
+    "name": "Favicon",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Image",
+        "info": "180 x 180px .png recommended"
+      }
+    ]
   }
 ]

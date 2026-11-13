@@ -4,6 +4,12 @@
     {% # Inlined CSS Variables %}
     {% render 'css-variables' %}
 
+    {% # Favicon — driven by Theme Settings → Favicon %}
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+      <link rel="apple-touch-icon" href="{{ settings.favicon | image_url: width: 180, height: 180 }}">
+    {%- endif -%}
+
     {% comment %}
       Font preloading:
       1. Preconnect to font CDN for faster connection
@@ -19,9 +25,21 @@
 
     {% # Load and preload the critical CSS %}
     {{ 'critical.css' | asset_url | stylesheet_tag: preload: true }}
+    {{ 'theme.css' | asset_url | stylesheet_tag }}
 
     {% # Social, title, etc. %}
     {% render 'meta-tags' %}
+
+    <script>
+      window.theme = window.theme || {};
+      window.theme.routes = {
+        search_url: {{ routes.search_url | json }},
+        predictive_search_url: {{ routes.predictive_search_url | default: '/search/suggest' | json }}
+      };
+      window.theme.moneyFormat = {{ shop.money_format | json }};
+    </script>
+
+    <script src="{{ 'global.js' | asset_url }}" defer></script>
 
     {{ content_for_header }}
   </head>
@@ -32,5 +50,7 @@
     {{ content_for_layout }}
 
     {% sections 'footer-group' %}
+
+    {% sections 'overlay-group' %}
   </body>
 </html>

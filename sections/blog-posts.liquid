@@ -1,0 +1,230 @@
+<div
+  id="BlogPosts-{{ section.id }}"
+  class="blog-posts-section color-{{ section.settings.color_scheme }} gradient full-width {% if section.settings.remove_padding_top %}section--no-padding-top{% endif %} {% if section.settings.remove_padding_bottom %}section--no-padding-bottom{% endif %}"
+  {{ section.shopify_attributes }}
+>
+  <div class="page-width">
+    {%- if section.settings.heading != blank or section.settings.subheading != blank -%}
+      <div class="blog-posts__header">
+        {%- if section.settings.subheading != blank -%}
+          <span class="blog-posts__subheading">{{ section.settings.subheading | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="blog-posts__heading">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- assign blog = blogs[section.settings.blog] -%}
+    {%- assign post_limit = section.settings.post_limit | default: 3 -%}
+    {%- assign columns = section.settings.columns_desktop | default: 3 -%}
+
+    <div class="blog-posts__grid blog-posts__grid--{{ columns }}-col">
+      {%- if blog != blank and blog.articles_count > 0 -%}
+        {%- for article in blog.articles limit: post_limit -%}
+          <article class="blog-card">
+            {%- if section.settings.show_image and article.image -%}
+              <a href="{{ article.url }}" class="blog-card__image-link" aria-label="{{ article.title | escape }}">
+                <div class="blog-card__image-wrap">
+                  {{
+                    article.image
+                    | image_url: width: 800
+                    | image_tag:
+                      loading: 'lazy',
+                      class: 'blog-card__image',
+                      widths: '375, 550, 750, 1100',
+                      sizes: '(min-width: 990px) 33vw, (min-width: 750px) 50vw, 100vw'
+                  }}
+                </div>
+              </a>
+            {%- endif -%}
+
+            <div class="blog-card__content">
+              {%- if section.settings.show_date or section.settings.show_author -%}
+                <div class="blog-card__meta">
+                  {%- if section.settings.show_date -%}
+                    <span class="blog-card__date">{{ article.published_at | time_tag: format: 'date' }}</span>
+                  {%- endif -%}
+                  {%- if section.settings.show_author and article.author != blank -%}
+                    <span class="blog-card__author">{{ article.author }}</span>
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+
+              <h3 class="blog-card__title">
+                <a href="{{ article.url }}">{{ article.title | escape }}</a>
+              </h3>
+
+              {%- if section.settings.show_excerpt and article.excerpt_or_content != blank -%}
+                <div class="blog-card__excerpt">
+                  <p>{{ article.excerpt_or_content | strip_html | truncatewords: 24 }}</p>
+                </div>
+              {%- endif -%}
+
+              <a href="{{ article.url }}" class="blog-card__read-more" aria-label="{{ 'Read more about ' | append: article.title | escape }}">
+                <span>Read article</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+            </div>
+          </article>
+        {%- endfor -%}
+      {%- else -%}
+        {%- for i in (1..post_limit) -%}
+          <article class="blog-card blog-card--placeholder">
+            {%- if section.settings.show_image -%}
+              <div class="blog-card__image-wrap blog-card__image-wrap--placeholder">
+                <svg viewBox="0 0 400 260" preserveAspectRatio="none" class="blog-card__placeholder-svg">
+                  <rect width="400" height="260" fill="#f0f0f0"></rect>
+                  <path d="M120 180 L180 110 L230 160 L270 130 L320 180 Z" fill="#e0e0e0"></path>
+                  <circle cx="150" cy="80" r="20" fill="#e0e0e0"></circle>
+                </svg>
+              </div>
+            {%- endif -%}
+
+            <div class="blog-card__content">
+              {%- if section.settings.show_date -%}
+                <div class="blog-card__meta">
+                  <span class="blog-card__date">{{ 'now' | time_tag: format: 'date' }}</span>
+                </div>
+              {%- endif -%}
+
+              <h3 class="blog-card__title">
+                <a href="#">Sample blog post title {{ i }}</a>
+              </h3>
+
+              {%- if section.settings.show_excerpt -%}
+                <div class="blog-card__excerpt">
+                  <p>Give your customers a summary of your blog post and encourage them to read more about your brand and products.</p>
+                </div>
+              {%- endif -%}
+
+              <a href="#" class="blog-card__read-more">
+                <span>Read article</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                  <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+              </a>
+            </div>
+          </article>
+        {%- endfor -%}
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.show_view_all and blog != blank and blog.articles_count > post_limit -%}
+      <div class="blog-posts__footer">
+        <a href="{{ blog.url }}" class="button button--secondary">
+          View all posts
+        </a>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Blog posts",
+  "class": "blog-posts-section",
+  "disabled_on": {
+    "groups": ["header", "footer", "custom.overlay"]
+  },
+  "settings": [
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "Blog"
+    },
+    {
+      "type": "text",
+      "id": "subheading",
+      "label": "Subheading",
+      "default": "From our journal"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Heading",
+      "default": "Latest news"
+    },
+    {
+      "type": "range",
+      "id": "post_limit",
+      "min": 2,
+      "max": 6,
+      "step": 1,
+      "default": 3,
+      "label": "Posts to show"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 4,
+      "step": 1,
+      "default": 3,
+      "label": "Number of columns on desktop"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_image",
+      "default": true,
+      "label": "Show featured image"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "default": true,
+      "label": "Show date"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "default": false,
+      "label": "Show author"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "default": true,
+      "label": "Show excerpt"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_view_all",
+      "default": true,
+      "label": "Show 'View all' button"
+    },
+    {
+      "type": "header",
+      "content": "Section padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_top",
+      "default": false,
+      "label": "Remove top padding"
+    },
+    {
+      "type": "checkbox",
+      "id": "remove_padding_bottom",
+      "default": false,
+      "label": "Remove bottom padding"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Blog posts",
+      "category": "Content"
+    }
+  ]
+}
+{% endschema %}

@@ -1,81 +1,208 @@
 {% comment %}
-  This section is used in the search template to render search results for
-  products, articles, and pages.
-
-  https://shopify.dev/docs/storefronts/themes/architecture/templates/search
+  sections/search.liquid
+  ======================
+  Prestige-style search template with live predictive search, suggestions column,
+  tabbed product & collection results, and executed search grid.
 {% endcomment %}
 
-<div class="search-section color-{{ section.settings.color_scheme }} gradient">
-  <h1>{{ 'search.title' | t }}</h1>
+<div
+  id="SearchSection-{{ section.id }}"
+  class="search-section full-width color-{{ section.settings.color_scheme }} gradient"
+  {{ section.shopify_attributes }}
+>
+  <div class="page-width">
+    {%- comment -%} Prestige Style Search Bar Form {%- endcomment -%}
+    <div class="prestige-search" data-predictive-search-root>
+      <form action="{{ routes.search_url }}" method="get" role="search" class="prestige-search__form">
+        <div class="prestige-search__input-wrapper">
+          <span class="prestige-search__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
 
-  <form action="{{ routes.search_url }}" method="get" role="search">
-    <input
-      type="search"
-      size="50"
-      name="q"
-      value="{{ search.terms | escape }}"
-      placeholder="{{ 'search.placeholder' | t }}"
-    >
-    <button type="submit">{{ 'search.submit' | t }}</button>
-  </form>
+          <input
+            type="search"
+            name="q"
+            value="{{ search.terms | escape }}"
+            placeholder="{{ 'search.placeholder' | t | default: 'SEARCH OUR STORE' }}"
+            class="prestige-search__input"
+            autocomplete="off"
+            autocorrect="off"
+            spellcheck="false"
+            data-predictive-search-input
+            aria-label="{{ 'search.placeholder' | t }}"
+            autofocus
+          >
 
-  {% if search.performed %}
-    {% if search.results_count == 0 %}
-      <p>{{ 'search.no_results_html' | t: terms: search.terms }}</p>
-    {% else %}
-      <p>{{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}</p>
+          <button
+            type="button"
+            class="prestige-search__clear{% if search.terms == blank %} hide{% endif %}"
+            data-search-clear
+            aria-label="Clear search"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </form>
 
-      <div class="search-results">
-        {% paginate search.results by 20 %}
-          {% # Search result items may be an article, a page, or a product. %}
-          {% for result in search.results %}
-            <div class="search-result">
-              {% assign featured_image = result.featured_image | default: result.image %}
-              {% if featured_image %}
-                {% render 'image', class: 'search-result__image', image: featured_image, url: result.url, width: 400 %}
-              {% endif %}
-              <div class="search-result__content">
-                <p>
-                  {{ result.title | link_to: result.url }}
-                  {% if result.price %}
-                    {{ result.price | money_with_currency }}
-                  {% endif %}
-                </p>
+      {%- comment -%} Live Predictive Search Dropdown / Results {%- endcomment -%}
+      <div class="predictive-search" data-predictive-search-results style="display: none;">
+        <div class="predictive-search__inner">
+          {%- comment -%} Left Column: Suggestions {%- endcomment -%}
+          <div class="predictive-search__column predictive-search__column--suggestions">
+            <h3 class="predictive-search__title">SUGGESTIONS</h3>
+            <ul class="predictive-search__list" data-suggestions-list>
+              {%- comment -%} Injected dynamically via global.js {%- endcomment -%}
+            </ul>
+          </div>
+
+          {%- comment -%} Right Column: Products & Collections {%- endcomment -%}
+          <div class="predictive-search__column predictive-search__column--results">
+            <div class="predictive-search__tabs" role="tablist">
+              <button
+                type="button"
+                role="tab"
+                class="predictive-search__tab is-active"
+                data-search-tab="products"
+                aria-selected="true"
+              >
+                PRODUCTS (<span data-count="products">0</span>)
+              </button>
+              <button
+                type="button"
+                role="tab"
+                class="predictive-search__tab"
+                data-search-tab="collections"
+                aria-selected="false"
+              >
+                COLLECTIONS (<span data-count="collections">0</span>)
+              </button>
+            </div>
+
+            <div class="predictive-search__panel is-active" data-panel="products">
+              <div class="predictive-search__grid" data-products-grid>
+                {%- comment -%} Injected dynamically via global.js {%- endcomment -%}
               </div>
             </div>
-          {% endfor %}
 
-          {{ paginate | default_pagination }}
-        {% endpaginate %}
+            <div class="predictive-search__panel" data-panel="collections" style="display: none;">
+              <div class="predictive-search__collections-list" data-collections-list>
+                {%- comment -%} Injected dynamically via global.js {%- endcomment -%}
+              </div>
+            </div>
+
+            <div class="predictive-search__footer">
+              <a href="#" class="predictive-search__view-all" data-view-all-link>
+                View all results for "<span data-view-all-term></span>" &rarr;
+              </a>
+            </div>
+          </div>
+        </div>
       </div>
-    {% endif %}
-  {% endif %}
-</div>
+    </div>
 
-{% stylesheet %}
-  .search-results {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  }
-  .search-results .prev,
-  .search-results .page,
-  .search-results .next {
-    grid-column: 1 / -1;
-  }
-{% endstylesheet %}
+    {%- comment -%} Executed Search Results {%- endcomment -%}
+    {%- if search.performed -%}
+      <div class="search-performed-results">
+        <div class="search-performed-results__header">
+          {%- if search.results_count == 0 -%}
+            <h2 class="search-performed-results__title">
+              {{ 'search.no_results_html' | t: terms: search.terms }}
+            </h2>
+            <p class="search-performed-results__subtitle">
+              Try checking your spelling or use more general terms.
+            </p>
+          {%- else -%}
+            <h2 class="search-performed-results__title">
+              {{ 'search.results_for_html' | t: terms: search.terms, count: search.results_count }}
+            </h2>
+          {%- endif -%}
+        </div>
+
+        {%- if search.results_count > 0 -%}
+          {%- assign per_page = section.settings.products_per_page | default: 24 -%}
+          {%- assign desktop_columns = section.settings.columns_desktop | default: 4 -%}
+          {% paginate search.results by per_page %}
+            <div class="search-results-grid search-results-grid--{{ desktop_columns }}-col">
+              {%- for result in search.results -%}
+                {%- if result.object_type == 'product' -%}
+                  {% render 'product-card', product: result %}
+                {%- else -%}
+                  <div class="search-article-card">
+                    {%- assign item_image = result.image | default: result.featured_image -%}
+                    {%- if item_image -%}
+                      <a href="{{ result.url }}" class="search-article-card__image-link">
+                        {{
+                          item_image
+                          | image_url: width: 600
+                          | image_tag: loading: 'lazy', class: 'search-article-card__image'
+                        }}
+                      </a>
+                    {%- endif -%}
+                    <div class="search-article-card__content">
+                      <span class="search-article-card__type">{{ result.object_type | capitalize }}</span>
+                      <h3 class="search-article-card__title">
+                        <a href="{{ result.url }}">{{ result.title | escape }}</a>
+                      </h3>
+                      {%- if result.content != blank -%}
+                        <p class="search-article-card__excerpt">
+                          {{ result.content | strip_html | truncatewords: 20 }}
+                        </p>
+                      {%- endif -%}
+                    </div>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+
+            {%- if paginate.pages > 1 -%}
+              <div class="search-pagination">
+                {{ paginate | default_pagination }}
+              </div>
+            {%- endif -%}
+          {% endpaginate %}
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</div>
 
 {% schema %}
 {
-  "name": "t:general.search",
+  "name": "Search",
+  "class": "search-section",
   "disabled_on": {
-    "groups": ["header", "footer"]
+    "groups": ["header", "footer", "custom.overlay"]
   },
   "settings": [
     {
       "type": "color_scheme",
       "id": "color_scheme",
-      "label": "t:labels.color_scheme",
+      "label": "Color scheme",
       "default": "scheme-1"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "min": 8,
+      "max": 36,
+      "step": 4,
+      "default": 24,
+      "label": "Results per page"
+    },
+    {
+      "type": "range",
+      "id": "columns_desktop",
+      "min": 2,
+      "max": 5,
+      "step": 1,
+      "default": 4,
+      "label": "Number of columns on desktop"
     }
   ]
 }
